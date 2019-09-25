@@ -1,6 +1,6 @@
-# LightningChart<sup>&#174;</sup> Trading example
+# LightningChart<sup>&#174;</sup>JS Trading showcase application
 
-Trading chart created using LightningChart JS and worldtradingdata.com API. Fetches requested stock data, and renders a variety of analysis tools, such as:
+Trading chart created using LightningChart JS and worldtradingdata.com API. Fetches requested stock data, and renders a variety of trading indicators, such as:
 - OHLC.
 - Simple Moving Average.
 - Exponential Moving Average.
@@ -8,13 +8,15 @@ Trading chart created using LightningChart JS and worldtradingdata.com API. Fetc
 - Volume.
 - Relative Strength Index .
 
+The logic of computing the trading indicators values is separated into its own open source project at https://github.com/Arction/lcjs-analysis.
+
 More information about LightningChart<sup>&#174;</sup> JS can be found from our website, https://www.arction.com/lightningchart-js/.
 
 ## Getting Started
 
 The application is hosted at:
 
-https://niiloarction.github.io/lcjs-trading-example/
+https://arction.github.io/lcjs-showcase-trading/
 
 To run the application locally with hot reload:
 
@@ -37,7 +39,7 @@ Direct developer email support can be purchased through a [Support Plan][4] or b
 
 © Arction Ltd 2009-2019. All rights reserved.
 
-[0]: https://github.com/Arction/lcjs-html-example/issues
+[0]: https://github.com/Arction/lcjs-showcase-trading/issues
 [1]: https://www.arction.com/lightningchart-js-api-documentation
 [2]: https://www.arction.com
 [3]: https://stackoverflow.com/questions/tagged/lightningchart
