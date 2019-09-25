@@ -1,7 +1,7 @@
 {
-  "name": "lcjs-trading-example",
+  "name": "lcjs-showcase-trading",
   "version": "1.0.0",
-  "description": "Example trading chart website using LightningChart JS",
+  "description": "LightningChart JS trading showcase application.",
   "main": "main.bundle.js",
   "scripts": {
     "start": "webpack-dev-server",
