@@ -33,9 +33,6 @@ module.exports = {
         new HtmlWebpackPlugin({
             title: 'LCJS Trading Chart',
             template: './src/index.html'
-        }),
-        new CopyWebpackPlugin([
-            { from: './README.md' }
-        ])
+        })
     ]
 }

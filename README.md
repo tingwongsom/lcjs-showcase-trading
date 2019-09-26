@@ -1,16 +1,20 @@
 # LightningChart<sup>&#174;</sup>JS Trading showcase application
 
-Trading chart created using LightningChart JS and worldtradingdata.com API. Fetches requested stock data, and renders a variety of trading indicators, such as:
-- OHLC.
-- Simple Moving Average.
-- Exponential Moving Average.
-- Bollinger Bands.
-- Volume.
-- Relative Strength Index .
+Trading chart application created using LightningChart JS and worldtradingdata.com API.
 
 The logic of computing the trading indicators values is separated into its own open source project at https://github.com/Arction/lcjs-analysis.
 
 More information about LightningChart<sup>&#174;</sup> JS can be found from our website, https://www.arction.com/lightningchart-js/.
+
+## Description
+
+Trading chart with live data fetched from worldtradingdata.com. Features:
+- OHLC
+- Simple Moving Average
+- Exponential Moving Average
+- Bollinger Bands
+- Volume
+- Relative Strength Index
 
 ## Getting Started
 
