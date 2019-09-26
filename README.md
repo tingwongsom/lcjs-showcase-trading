@@ -29,7 +29,7 @@ To run the application locally with hot reload:
 3. Run `npm start`
 4. Open browser and navigate to http://localhost:8080
 
-### Support
+## Support
 
 If you notice an error in the example code, please open an issue on [GitHub][0].
 
