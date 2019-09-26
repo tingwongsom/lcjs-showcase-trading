@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@arction/lcjs": "^1.0.0",
-    "@arction/lcjs-analysis": "^1.0.2"
+    "@arction/lcjs-analysis": "^1.0.2",
+    "copy-webpack-plugin": "^5.0.4"
   }
 }
