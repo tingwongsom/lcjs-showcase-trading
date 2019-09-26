@@ -782,30 +782,48 @@ document
 
 //#region ----- Manage Colors and derived Styles using Enums and Maps.
 enum AppColor {
-    White,
-    LightBlue,
-    Blue,
-    BlueTransparent,
-    DarkBlue,
-    DarkerBlue,
-    Purplish,
-    Red,
-    RedTransparent,
-    Green,
-    GreenTransparent
+    BackgroundPanel,
+    BackgroundChart,
+    Titles,
+    Axes,
+    Nibs,
+    Labels,
+    Ticks,
+    CandlePositive,
+    CandleNegative,
+    SMA,
+    EMA,
+    VolumeFill,
+    VolumeStroke,
+    BollingerFill,
+    BollingerStroke,
+    LineRSI,
+    HighRSI,
+    LowRSI,
+    AutoCursorFill,
+    AutoCursorStroke
 }
 const colors = new Map<AppColor, Color>()
-colors.set( AppColor.White, ColorHEX('#FFF') )
-colors.set( AppColor.LightBlue, ColorRGBA( 162, 191, 244 ) )
-colors.set( AppColor.Blue, ColorRGBA( 75, 99, 143 ) )
-colors.set( AppColor.BlueTransparent, colors.get( AppColor.Blue ).setA(120) )
-colors.set( AppColor.DarkBlue, ColorRGBA( 15, 23, 36 ) )
-colors.set( AppColor.DarkerBlue, ColorRGBA( 10, 15, 24 ) )
-colors.set( AppColor.Purplish, ColorRGBA( 209, 44, 144 ) )
-colors.set( AppColor.Red, ColorRGBA( 219, 40, 68 ) )
-colors.set( AppColor.RedTransparent, colors.get( AppColor.Red ).setA(120) )
-colors.set( AppColor.Green, ColorRGBA( 28, 231, 69 ) )
-colors.set( AppColor.GreenTransparent, colors.get( AppColor.Green ).setA(120) )
+colors.set( AppColor.BackgroundPanel, ColorRGBA( 32, 32, 32 ) )
+colors.set( AppColor.BackgroundChart, ColorRGBA( 24, 24, 24 ) )
+colors.set( AppColor.Titles, ColorRGBA( 235, 190, 0 ) )
+colors.set( AppColor.Axes, ColorRGBA( 150, 150, 150 ) )
+colors.set( AppColor.Nibs, ColorRGBA( 180, 180, 180 ) )
+colors.set( AppColor.Labels, ColorRGBA( 235, 190, 0 ) )
+colors.set( AppColor.Ticks, colors.get( AppColor.Labels ) )
+colors.set( AppColor.CandlePositive, ColorRGBA( 28, 231, 69 ) )
+colors.set( AppColor.CandleNegative, ColorRGBA( 219, 40, 68 ) )
+colors.set( AppColor.SMA, ColorRGBA( 219, 40, 68 ) )
+colors.set( AppColor.EMA, ColorRGBA( 28, 231, 69 ) )
+colors.set( AppColor.VolumeFill, ColorRGBA( 254, 204, 0 ) )
+colors.set( AppColor.VolumeStroke, ColorRGBA( 0, 0, 0, 0 ) )
+colors.set( AppColor.BollingerFill, ColorRGBA( 33, 33, 33 ) )
+colors.set( AppColor.BollingerStroke, ColorRGBA( 66, 66, 66 ) )
+colors.set( AppColor.LineRSI, ColorRGBA( 255, 255, 255 ) )
+colors.set( AppColor.HighRSI, ColorRGBA( 219, 40, 68 ) )
+colors.set( AppColor.LowRSI, ColorRGBA( 28, 231, 69 ) )
+colors.set( AppColor.AutoCursorFill, colors.get( AppColor.BackgroundChart ) )
+colors.set( AppColor.AutoCursorStroke, colors.get( AppColor.Ticks ) )
 
 const solidFills = new Map<AppColor, SolidFill>()
 colors.forEach((color, key) => solidFills.set( key, new SolidFill({ color }) ))
@@ -834,14 +852,14 @@ for ( let i = 0; i < charts.length; i ++ ) {
             .setTitleMarginBottom( 0 )
             .setPadding({ top: 10, left: 0 })
             // Color scheme.
-            .setBackgroundFillStyle( solidFills.get( AppColor.DarkerBlue ) )
-            .setChartBackgroundFillStyle( solidFills.get( AppColor.DarkBlue ) )
+            .setBackgroundFillStyle( solidFills.get( AppColor.BackgroundPanel ) )
+            .setChartBackgroundFillStyle( solidFills.get( AppColor.BackgroundChart ) )
     }
 }
 for ( const title of chartTitles )
     if ( title )
         title
-            .setTextFillStyle( solidFills.get( AppColor.LightBlue ) )
+            .setTextFillStyle( solidFills.get( AppColor.Titles ) )
             .setFont(( font ) => font.setWeight( 'bold' ))
 
 // Push all charts left sides equal distance away from left border.
@@ -875,12 +893,12 @@ for ( let i = 0; i < charts.length; i ++ ) {
             if ( tickStyle !== emptyTick )
                 axis
                     .setTickStyle((tickStyle: VisibleTicks) => tickStyle
-                        .setLabelFillStyle( solidFills.get( AppColor.LightBlue ) )
-                        .setTickStyle( solidLines.get( AppColor.Blue ).get( AppLineThickness.Thin ) )
+                        .setLabelFillStyle( solidFills.get( AppColor.Labels ) )
+                        .setTickStyle( solidLines.get( AppColor.Ticks ).get( AppLineThickness.Thin ) )
                     )
             axis
-                .setStrokeStyle( solidLines.get( AppColor.Blue ).get( AppLineThickness.Thick ) )
-                .setNibStyle( solidLines.get( AppColor.Red ).get( AppLineThickness.Thick ) )
+                .setStrokeStyle( solidLines.get( AppColor.Axes ).get( AppLineThickness.Thick ) )
+                .setNibStyle( solidLines.get( AppColor.Nibs ).get( AppLineThickness.Thick ) )
         }
         axisX
             .setTickStyle(emptyTick)
@@ -901,11 +919,11 @@ for ( let i = 0; i < charts.length; i ++ ) {
 for ( const tick of ticksRSI )
     tick
         .setMarker(( marker ) => marker
-            .setTextFillStyle( solidFills.get( AppColor.LightBlue ) )
+            .setTextFillStyle( solidFills.get( AppColor.Ticks ) )
         )
 // Style CustomTicks created when rendering.
 tickWithoutBackgroundBuilder = tickWithoutBackgroundBuilder.addStyler(( tick ) => tick
-    .setTextFillStyle( solidFills.get( AppColor.LightBlue ) )
+    .setTextFillStyle( solidFills.get( AppColor.Labels ) )
 )
 //#endregion
 
@@ -913,49 +931,49 @@ tickWithoutBackgroundBuilder = tickWithoutBackgroundBuilder.addStyler(( tick ) =
 if ( seriesOHLC )
     seriesOHLC
         .setPositiveStyle((candlestick) => candlestick
-            .setBodyFillStyle( solidFills.get( AppColor.Green ) )
-            .setStrokeStyle( solidLines.get( AppColor.Green ).get( AppLineThickness.Thin ) )
+            .setBodyFillStyle( solidFills.get( AppColor.CandlePositive ) )
+            .setStrokeStyle( solidLines.get( AppColor.CandlePositive ).get( AppLineThickness.Thin ) )
         )
         .setNegativeStyle((candlestick) => candlestick
-            .setBodyFillStyle( solidFills.get( AppColor.Red ) )
-            .setStrokeStyle( solidLines.get( AppColor.Red ).get( AppLineThickness.Thin ) )
+            .setBodyFillStyle( solidFills.get( AppColor.CandleNegative ) )
+            .setStrokeStyle( solidLines.get( AppColor.CandleNegative ).get( AppLineThickness.Thin ) )
         )
         .setFigureWidth( 10 )
         .setMouseInteractions( false )
 
 if ( seriesSMA )
     seriesSMA
-        .setStrokeStyle( solidLines.get( AppColor.Purplish ).get( AppLineThickness.Thin ) )
+        .setStrokeStyle( solidLines.get( AppColor.SMA ).get( AppLineThickness.Thin ) )
         .setMouseInteractions( false )
 if ( seriesEMA )
     seriesEMA
-        .setStrokeStyle( solidLines.get( AppColor.LightBlue ).get( AppLineThickness.Thin ) )
+        .setStrokeStyle( solidLines.get( AppColor.EMA ).get( AppLineThickness.Thin ) )
         .setMouseInteractions( false )
 if ( seriesBollinger )
     seriesBollinger
-        .setHighFillStyle( solidFills.get( AppColor.BlueTransparent ) )
-        .setLowFillStyle( solidFills.get( AppColor.BlueTransparent ) )
-        .setHighStrokeStyle( solidLines.get( AppColor.Blue ).get( AppLineThickness.Thin ) )
-        .setLowStrokeStyle( solidLines.get( AppColor.Blue ).get( AppLineThickness.Thin ) )
+        .setHighFillStyle( solidFills.get( AppColor.BollingerFill ) )
+        .setLowFillStyle( solidFills.get( AppColor.BollingerFill ) )
+        .setHighStrokeStyle( solidLines.get( AppColor.BollingerStroke ).get( AppLineThickness.Thin ) )
+        .setLowStrokeStyle( solidLines.get( AppColor.BollingerStroke ).get( AppLineThickness.Thin ) )
         .setMouseInteractions( false )
 if ( seriesVolume )
     seriesVolume
-        .setFillStyle( solidFills.get( AppColor.LightBlue ) )
-        .setStrokeStyle( solidLines.get( AppColor.Blue ).get( AppLineThickness.Thin ) )
+        .setFillStyle( solidFills.get( AppColor.VolumeFill ) )
+        .setStrokeStyle( solidLines.get( AppColor.VolumeStroke ).get( AppLineThickness.Thin ) )
         .setMouseInteractions( false )
 if ( seriesRSI )
     seriesRSI
-        .setStrokeStyle( solidLines.get( AppColor.White ).get( AppLineThickness.Thin ) )
+        .setStrokeStyle( solidLines.get( AppColor.LineRSI ).get( AppLineThickness.Thin ) )
         .setMouseInteractions( false )
 
 // Style RSI ticks.
 if ( tickRSIThresholdLow )
     tickRSIThresholdLow
-        .setGridStrokeStyle( solidLines.get( AppColor.GreenTransparent ).get( AppLineThickness.Thin ) )
+        .setGridStrokeStyle( solidLines.get( AppColor.LowRSI ).get( AppLineThickness.Thin ) )
 
 if ( tickRSIThresholdHigh )
 tickRSIThresholdHigh
-        .setGridStrokeStyle( solidLines.get( AppColor.RedTransparent ).get( AppLineThickness.Thin ) )
+        .setGridStrokeStyle( solidLines.get( AppColor.HighRSI ).get( AppLineThickness.Thin ) )
 //#endregion
 
 //#region ----- Style ResultTables -----
@@ -991,20 +1009,21 @@ const enableAutoCursorAutoColoring = ( autoCursor: AutoCursorXY ) => autoCursor
 const styleAutoCursor = ( autoCursor: AutoCursorXY ) => autoCursor
     .setTickMarkerX(( tickMarker ) => tickMarker
         .setBackground(( background ) => background
-            .setFillStyle( solidFills.get( AppColor.DarkerBlue ) )
-            .setStrokeStyle( solidLines.get( AppColor.Blue ).get( AppLineThickness.Thin ) )
+            .setFillStyle( solidFills.get( AppColor.AutoCursorFill ) )
+            .setStrokeStyle( solidLines.get( AppColor.AutoCursorStroke ).get( AppLineThickness.Thin ) )
         )
     )
     .setTickMarkerY(( tickMarker ) => tickMarker
         .setBackground(( background ) => background
-            .setFillStyle( solidFills.get( AppColor.DarkerBlue ) )
-            .setStrokeStyle( solidLines.get( AppColor.Blue ).get( AppLineThickness.Thin ) )
+            .setFillStyle( solidFills.get( AppColor.AutoCursorFill ) )
+            .setStrokeStyle( solidLines.get( AppColor.AutoCursorStroke ).get( AppLineThickness.Thin ) )
         )
+
     )
     .setResultTable(( resultTable ) => resultTable
         .setBackground(( background ) => background
-            .setFillStyle( solidFills.get( AppColor.DarkerBlue ) )
-            .setStrokeStyle( solidLines.get( AppColor.Blue ).get( AppLineThickness.Thin ) )
+            .setFillStyle( solidFills.get( AppColor.AutoCursorFill ) )
+            .setStrokeStyle( solidLines.get( AppColor.AutoCursorStroke ).get( AppLineThickness.Thin ) )
         )
     )
 
