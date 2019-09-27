@@ -83,15 +83,13 @@
     <a id="github-link" href="https://github.com/Arction/lcjs-showcase-trading">
         <img id="github-link-image" class="grow" src="./GitHub-Mark-White-32px.png"/>
     </a>
-    <script>
+    <script type="text/javascript">
         // Hide Github link if we think we are inside an iframe.
         if ( window !== window.top ) {
-            console.log('inside iframe')
             // Inside iframe.
             const githubLinkImage = document.getElementById( 'github-link-image' )
             githubLinkImage.className += ' hidden'
-        } else
-            console.log('not inside iframe')
+        }
     </script>
   <script type="text/javascript" src="vendors~main.bundle.js"></script><script type="text/javascript" src="main.bundle.js"></script></body>
 </html>
