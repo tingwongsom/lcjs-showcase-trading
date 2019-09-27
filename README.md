@@ -1,4 +1,4 @@
-# LightningChart<sup>&#174;</sup>JS Trading showcase application
+# LightningChart JS Trading showcase application
 
 Trading chart application created using LightningChart JS and worldtradingdata.com API.
 
