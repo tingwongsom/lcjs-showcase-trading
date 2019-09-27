@@ -1,0 +1,141 @@
+<html>
+    <body>
+            <div class="js-example-container">
+                    <a id="showcase-1" target="_blank" class="js-example-item" rel="noopener noreferrer"><p class="chart-title">Trading demo</p> <img src="https://www.arction.com/wp-content/uploads/2019/09/lcjs-showcase-trading.jpg"><p class="chart-info">Gets OHLC data from REST API and shows data with technicalindicators</p></a>
+                      <a id="showcase-2" target="_blank" class="js-example-item" rel="noopener noreferrer"><p class="chart-title">Real-time scrolling</p> <img src="https://www.arction.com/wp-content/uploads/2019/09/lcjs-showcase-streamingData.jpg"><p class="chart-info">Shows real-time line chart with 5 x 1 million points, and shows FPS count</p></a>
+                      <a id="showcase-3" target="_blank" class="js-example-item" rel="noopener noreferrer"><p class="chart-title">Static data speed test</p> <img src="https://www.arction.com/wp-content/uploads/2019/09/lcjs-showcase-renderingSpeed.jpg"><p class="chart-info">Measures how long it takes to render 1 million or 10 million data points of static data</p></a>
+                  </div>
+                  <div class="js-content-active">
+                      <div class="js-example-container">
+                          <iframe id="js-example-chart" class="js-section" src=""></iframe>
+                          <div class="item-info">
+                            <div id="js-example-description">Title and description</div>
+                            <a id="js-show-example" class="et_pb_button et_pb_button_1 et_pb_module et_pb_bg_layout_light main-page-button" href="">Show example</a>
+                          </div>
+                      </div>
+                  </div>
+                  <script type='text/javascript'>
+                    var showcaseItemIDs = [
+                        "showcase-1",
+                        "showcase-2",
+                        "showcase-3"
+                    ];
+                    var showcaseURLs = [
+                        "https://arction.github.io/lcjs-showcase-trading",
+                        "https://arction.github.io/lcjs-showcase-streamingData",
+                        "https://arction.github.io/lcjs-showcase-renderingSpeed"
+                    ];
+                    var showcaseItems = showcaseItemIDs.map(function( id ) {
+                        return document.getElementById( id );
+                    });
+                    var jsExampleChart = document.getElementById( 'js-example-chart' );
+                    var jsExampleDescription = document.getElementById( 'js-example-description' )
+                    var jsShowExample = document.getElementById( 'js-show-example' )
+                    var activeShowcase = undefined
+                    var activateShowcase = function( i ) {
+                      if ( activeShowcase === i ) {
+                        return
+                      }
+                      if ( i === undefined ) {
+                        // Clear showcase.
+                        jsExampleChart.src = "";
+                        jsExampleDescription.innerHTML = "";
+                      } else {
+                        // Set URLs to hovered showcase.
+                        jsExampleChart.src = showcaseURLs[ i ] + '/index.html';
+                        // Markdown file needs to be read into text, so HTTP request is necessary.
+                        const httpRequest = new XMLHttpRequest();
+                        const descriptionURL = showcaseURLs[ i ] + '/description.md'
+                        httpRequest.open( "GET", descriptionURL, true );
+                        httpRequest.onreadystatechange = function() {
+                            // Check 1. Document is ready to be parsed, and 2. File exists.
+                            if ( httpRequest.readyState === 4 && httpRequest.status === 200 ) {
+                                const readme = httpRequest.responseText;
+                                jsExampleDescription.innerHTML = readme;
+                            }
+                        }
+                        httpRequest.send();
+                      }
+                      // Set link for "show example" button.
+                      jsShowExample.href = showcaseURLs[ i ];
+                      activeShowcase = i;
+                    }
+                    // Activate first showcase item by default.
+                    activateShowcase( 0 )
+                    // Listen to mouse-events for toggling showcase items.
+                    showcaseItems.forEach(function( item, i ) {
+                        item.addEventListener( 'click', function() {
+                          activateShowcase( i )
+                        })
+                    })
+                  </script>
+                  <style>
+                      .js-example-container{
+                          display:flex;
+                          justify-content:center;
+                          flex-wrap: nowrap;
+                          width:100%;      	
+                      }
+                    
+                      .js-example-item{
+                        background:#484848;
+                        display:block;
+                        margin:40px;
+                        max-width:350px; 
+                        border-radius:8px
+                      }
+                    
+                      .js-example-item:hover,
+                        .js-example-item:active,
+                        .js-example-item:focus{
+                       background:#5f5f5f;
+                    }
+                    
+                      
+                      .js-section{
+                          width:50%;
+                          min-height:450px;
+                      }
+                      
+                      .item-info{
+                          width:50%;
+                          background:#454545;
+                          color:#fff;
+                          padding:40px;
+                            font-size:20px;
+                          font-weight:normal;
+                      }
+                      .js-example-container a{
+                          color:#fff;
+                          padding:10px;
+                      }
+                    
+                    .chart-title{
+                      font-size:22px;
+                      padding:0 0 10px;
+                      color:#fff;
+                      text-align:center;
+                    }
+                    
+                    .chart-info{
+                      displa#fefcfc;
+                      color:#949191;
+                      line-height:1.4em;   
+                      text-align:center
+                    }
+                    
+                    .item-title{
+                      font-size:30px; 
+                      margin-bottom:20px;
+                      font-weight:bold;
+                      //color:#fecc00
+                    }
+                    #js-example-description{
+                      margin-bottom:30px
+                    }
+                      .chart{
+                          height:100%;
+                      }
+                  </style>
+    </body>
+</html>
