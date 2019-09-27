@@ -1,3 +1,4 @@
+<h1 id="lightningchartsup174supjs-trading-showcase-application">LightningChart<sup>&#174;</sup>JS Trading showcase application</h1>
 <p>Trading chart with live data fetched from worldtradingdata.com. Features:</p>
 <ul>
 <li>OHLC</li>
