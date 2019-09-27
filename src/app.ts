@@ -1,4 +1,4 @@
-import { lightningChart, emptyFill, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, Axis, VisibleTicks, emptyLine, transparentFill, emptyTick, transparentLine, AreaSeries, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint } from "@arction/lcjs"
+import { lightningChart, emptyFill, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, Axis, VisibleTicks, emptyLine, transparentFill, emptyTick, transparentLine, AreaSeries, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds } from "@arction/lcjs"
 import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relativeStrengthIndex  } from '@arction/lcjs-analysis'
 
 //#region ----- Application configuration -----
@@ -163,7 +163,8 @@ if ( chartConfigOHLC.show ) {
     const axisX = chartOHLC.getDefaultAxisX()
     const axisY = chartOHLC.getDefaultAxisY()
     const _chartOHLCTitle = chartOHLC.addUIElement(
-        UIElementBuilders.TextBox,
+        UIElementBuilders.TextBox
+            .setBackground( UIBackgrounds.Rectangle ),
         {
             x: axisX.scale,
             y: axisY.scale
@@ -173,6 +174,11 @@ if ( chartConfigOHLC.show ) {
         .setPosition({ x: 0, y: 10 })
         .setOrigin( UIOrigins.LeftTop )
         .setDraggingMode( UIDraggingModes.notDraggable )
+        // Set dark, tinted Background style.
+        .setBackground(( background ) => background
+            .setFillStyle( new SolidFill({ color: ColorHEX('#000').setA(150) }) )
+            .setStrokeStyle( emptyLine )
+        )
     chartOHLCTitle = _chartOHLCTitle
     // Follow Axis interval changes to keep title positioned where it should be.
     axisX.onScaleChange((start, end) => _chartOHLCTitle.setPosition({ x: start, y: axisY.scale.getInnerEnd() }))
@@ -244,7 +250,8 @@ if ( chartConfigVolume.show ) {
     const axisX = chartVolume.getDefaultAxisX()
     const axisY = chartVolume.getDefaultAxisY()
     const _chartVolumeTitle = chartVolume.addUIElement(
-        UIElementBuilders.TextBox,
+        UIElementBuilders.TextBox
+            .setBackground( UIBackgrounds.Rectangle ),
         {
             x: axisX.scale,
             y: axisY.scale
@@ -254,6 +261,11 @@ if ( chartConfigVolume.show ) {
         .setPosition({ x: 0, y: 10 })
         .setOrigin( UIOrigins.LeftTop )
         .setDraggingMode( UIDraggingModes.notDraggable )
+        // Set dark, tinted Background style.
+        .setBackground(( background ) => background
+            .setFillStyle( new SolidFill({ color: ColorHEX('#000').setA(150) }) )
+            .setStrokeStyle( emptyLine )
+        )
     chartVolumeTitle = _chartVolumeTitle
     // Follow Axis interval changes to keep title positioned where it should be.
     axisX.onScaleChange((start, end) => _chartVolumeTitle.setPosition({ x: start, y: axisY.scale.getInnerEnd() }))
@@ -294,7 +306,8 @@ if ( chartConfigRSI.show ) {
     const axisX = chartRSI.getDefaultAxisX()
     const axisY = chartRSI.getDefaultAxisY()
     const _chartRSITitle = chartRSI.addUIElement(
-        UIElementBuilders.TextBox,
+        UIElementBuilders.TextBox
+            .setBackground( UIBackgrounds.Rectangle ),
         {
             x: axisX.scale,
             y: axisY.scale
@@ -304,7 +317,12 @@ if ( chartConfigRSI.show ) {
         .setPosition({ x: 0, y: 10 })
         .setOrigin( UIOrigins.LeftTop )
         .setDraggingMode( UIDraggingModes.notDraggable )
-        chartRSITitle = _chartRSITitle
+        // Set dark, tinted Background style.
+        .setBackground(( background ) => background
+            .setFillStyle( new SolidFill({ color: ColorHEX('#000').setA(150) }) )
+            .setStrokeStyle( emptyLine )
+        );
+    chartRSITitle = _chartRSITitle
     // Follow Axis interval changes to keep title positioned where it should be.
     axisX.onScaleChange((start, end) => _chartRSITitle.setPosition({ x: start, y: axisY.scale.getInnerEnd() }))
     axisY.onScaleChange((start, end) => _chartRSITitle.setPosition({ x: axisX.scale.getInnerStart(), y: end }))
