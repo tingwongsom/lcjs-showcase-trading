@@ -859,7 +859,7 @@ for ( let i = 0; i < charts.length; i ++ ) {
     }
 }
 // Add top padding to very first Chart, so nothing is hidden by data-search input.
-charts[0].setPadding({ top: 24 })
+charts[0].setPadding({ top: 20 })
 // Remove bottom padding of very last Chart, to save space.
 charts[ charts.reduce((iMax, chart, i) => chart && i > iMax ? i : iMax, 0) ].setPadding({ bottom: 0 })
 
