@@ -8,7 +8,7 @@ import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relative
 
 const chartConfigOHLC = {
     show: true,
-    verticalSpans: 6,
+    verticalSpans: 5,
     /**
      * Simple Moving Average.
      */
@@ -858,6 +858,11 @@ for ( let i = 0; i < charts.length; i ++ ) {
             .setChartBackgroundFillStyle( solidFills.get( AppColor.BackgroundChart ) )
     }
 }
+// Add top padding to very first Chart, so nothing is hidden by data-search input.
+charts[0].setPadding({ top: 24 })
+// Remove bottom padding of very last Chart, to save space.
+charts[ charts.reduce((iMax, chart, i) => chart && i > iMax ? i : iMax, 0) ].setPadding({ bottom: 0 })
+
 for ( const title of chartTitles )
     if ( title )
         title
@@ -879,9 +884,6 @@ for ( const chart of charts )
                 .setPadding({ left: 50 })
             )
             .setGridStrokeLength( 0 )
-
-// Add top padding to very first Chart, so nothing is hidden by data-search input.
-charts[0].setPadding({ top: 24 })
 //#endregion
 
 //#region ----- Style Axes -----
