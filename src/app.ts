@@ -8,7 +8,7 @@ import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relative
 
 const chartConfigOHLC = {
     show: true,
-    verticalSpans: 5,
+    verticalSpans: 3,
     /**
      * Simple Moving Average.
      */
@@ -40,7 +40,7 @@ const chartConfigVolume = {
 }
 const chartConfigRSI = {
     show: true,
-    verticalSpans: 2,
+    verticalSpans: 1,
     averagingFrameLength: 13, // history data : 13 days.
     averagingFrameLengthIntraday: 1 // intraday data : 1 day
 }
