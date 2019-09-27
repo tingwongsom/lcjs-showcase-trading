@@ -1131,7 +1131,7 @@ document.addEventListener( 'mousemove', () => {
 
 //#endregion
 
-// Render static data initially (1 year history of AAPL).
+// Render static data initially (1 year history of AAPL, taken on 26th September 2019).
 // This is a temporary solution for while the API token is limited to an amount of searches.
 const temporaryStaticData = require('./temporary-static-data.json')
 renderOHLCData( 'AAPL history', temporaryStaticData )
