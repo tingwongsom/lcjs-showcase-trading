@@ -86,10 +86,12 @@
     <script>
         // Hide Github link if we think we are inside an iframe.
         if ( window !== window.top ) {
+            console.log('inside iframe')
             // Inside iframe.
             const githubLinkImage = document.getElementById( 'github-link-image' )
             githubLinkImage.className += ' hidden'
-        }
+        } else
+            console.log('not inside iframe')
     </script>
   <script type="text/javascript" src="vendors~main.bundle.js"></script><script type="text/javascript" src="main.bundle.js"></script></body>
 </html>
