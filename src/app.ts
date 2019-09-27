@@ -8,7 +8,7 @@ import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relative
 
 const chartConfigOHLC = {
     show: true,
-    verticalSpans: 3,
+    verticalSpans: 6,
     /**
      * Simple Moving Average.
      */
@@ -40,7 +40,7 @@ const chartConfigVolume = {
 }
 const chartConfigRSI = {
     show: true,
-    verticalSpans: 1,
+    verticalSpans: 2,
     averagingFrameLength: 13, // history data : 13 days.
     averagingFrameLengthIntraday: 1 // intraday data : 1 day
 }
@@ -836,6 +836,8 @@ colors.forEach((_, key) => {
     thicknessMap.set( AppLineThickness.Thick, new SolidLine({ thickness: 4, fillStyle: solidFills.get( key ) }) )
     solidLines.set( key, thicknessMap )
 })
+
+const fontSize = 12
 //#endregion
 
 // Style Dashboard.
@@ -850,7 +852,7 @@ for ( let i = 0; i < charts.length; i ++ ) {
             .setTitleFillStyle( emptyFill )
             .setTitleMarginTop( 0 )
             .setTitleMarginBottom( 0 )
-            .setPadding({ top: 10, left: 0 })
+            .setPadding({ top: 8, bottom: 8, left: 0 })
             // Color scheme.
             .setBackgroundFillStyle( solidFills.get( AppColor.BackgroundPanel ) )
             .setChartBackgroundFillStyle( solidFills.get( AppColor.BackgroundChart ) )
@@ -860,7 +862,10 @@ for ( const title of chartTitles )
     if ( title )
         title
             .setTextFillStyle( solidFills.get( AppColor.Titles ) )
-            .setFont(( font ) => font.setWeight( 'bold' ))
+            .setFont(( font ) => font
+                .setSize( fontSize )
+                .setWeight( 'bold' )
+            )
 
 // Push all charts left sides equal distance away from left border.
 // TODO: Is there any way to do this without adding invisible custom ticks?
@@ -871,12 +876,12 @@ for ( const chart of charts )
                 .setPointerLength( 0 )
                 .setTextFillStyle( emptyFill )
                 // Padding is used to control distance.
-                .setPadding({ left: 60 })
+                .setPadding({ left: 50 })
             )
             .setGridStrokeLength( 0 )
 
 // Add top padding to very first Chart, so nothing is hidden by data-search input.
-charts[0].setPadding({ top: 30 })
+charts[0].setPadding({ top: 24 })
 //#endregion
 
 //#region ----- Style Axes -----
@@ -894,6 +899,9 @@ for ( let i = 0; i < charts.length; i ++ ) {
                 axis
                     .setTickStyle((tickStyle: VisibleTicks) => tickStyle
                         .setLabelFillStyle( solidFills.get( AppColor.Labels ) )
+                        .setLabelFont(( font ) => font
+                            .setSize( fontSize )
+                        )
                         .setTickStyle( solidLines.get( AppColor.Ticks ).get( AppLineThickness.Thin ) )
                     )
             axis
@@ -920,10 +928,16 @@ for ( const tick of ticksRSI )
     tick
         .setMarker(( marker ) => marker
             .setTextFillStyle( solidFills.get( AppColor.Ticks ) )
+            .setFont(( font ) => font
+                .setSize( fontSize )
+            )
         )
 // Style CustomTicks created when rendering.
 tickWithoutBackgroundBuilder = tickWithoutBackgroundBuilder.addStyler(( tick ) => tick
     .setTextFillStyle( solidFills.get( AppColor.Labels ) )
+    .setFont(( font ) => font
+        .setSize( fontSize )
+    )
 )
 //#endregion
 
