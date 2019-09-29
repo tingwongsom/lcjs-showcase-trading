@@ -62,7 +62,7 @@ if ( dataSource === DataSources.WorldTradingData ) {
     } catch (e) {
         dataSourceApiToken = undefined
     }
-    if ( dataSourceApiToken === undefined || dataSourceApiToken === 'demo' ) {
+    if ( dataSourceApiToken === undefined || dataSourceApiToken === 'demo' || dataSourceApiToken.length === 0 ) {
         console.log('No API token for worldtradingdata.com')
         const registerUrl = 'https://www.worldtradingdata.com/register'
 
@@ -669,9 +669,11 @@ const maxAveragingFrameLength = Math.max(
 // Function that handles event where data search failed.
 const dataSearchFailed = ( searchSymbol: string ) => {
     console.log('No data found for \'', searchSymbol, '\'')
-    // Set title of OHLC Chart to show no data was found.
-    if ( chartOHLCTitle )
-        chartOHLCTitle.setText( 'No data found for \'' + searchSymbol + '\'' )
+    alert( `Data for '${searchSymbol}' not found. May be that:
+1) Search symbol is not valid stock label.
+2) Requested stock data or data-range is not available from worldtradingdata.com.
+3) Data subscription limit has been reached for this day.
+` )
 }
 
 // Define function that searches OHLC data.
