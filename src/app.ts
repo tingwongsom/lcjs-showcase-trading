@@ -3,9 +3,21 @@ import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relative
 
 //#region ----- Application configuration -----
 
+// *** Data-source ***
+// To run application locally, you'll need to set 'dataSource' with source: 'worldtradingdata.com', and a valid API token.
+// You can get one for free from https://www.worldtradingdata.com/register
+let dataSource: {
+    source: 'arction-internal'
+} | {
+    source: 'worldtradingdata.com',
+    apiToken: string
+}
+dataSource = { source: 'arction-internal' }
+// dataSource = { source: 'worldtradingdata.com', apiToken: 'my-api-token' }
+
+
 // To disable/enable/modify charts inside application, alter values below:
 // averagingFrameLength is in "periods", 1 period = the opening time of stock marker for one week-day.
-
 const chartConfigOHLC = {
     show: true,
     verticalSpans: 3,
@@ -45,34 +57,6 @@ const chartConfigRSI = {
     averagingFrameLengthIntraday: 1 // intraday data : 1 day
 }
 
-// Market data is currently always requested and parsed from worldtradingdata.com
-enum DataSources { WorldTradingData }
-const dataSource = DataSources.WorldTradingData
-let dataSourceApiToken: string | undefined
-
-//#endregion
-
-//#region ----- Application logic -----
-
-//#region ----- Read worldtradingdata.com API token from local file 'wtd-token.json' -----
-if ( dataSource === DataSources.WorldTradingData ) {
-    try {
-        const tokenJSON = require('../wtd-token.json')
-        dataSourceApiToken = tokenJSON.token
-    } catch (e) {
-        dataSourceApiToken = undefined
-    }
-    if ( dataSourceApiToken === undefined || dataSourceApiToken === 'demo' ) {
-        console.log('No API token for worldtradingdata.com')
-        const registerUrl = 'https://www.worldtradingdata.com/register'
-
-        if ( window.confirm( `No API token for worldtradingdata.com!
-Register at ${registerUrl} for free, and write your API token to file: 'wtd-token.json'` ) ) {
-            // Attempt to open new tab in above webpage directly. Note that often browsers block this operation.
-            window.open( registerUrl )
-        }
-    }
-}
 //#endregion
 
 //#region ----- Find referenced DOM elements from 'index.html' -----
@@ -680,78 +664,83 @@ const searchData = () => {
     const inputField = domElements.get( domElementIDs.dataSearchInput ) as HTMLInputElement
     const searchSymbol = inputField.value
 
-    if ( dataSource === DataSources.WorldTradingData ) {
+    // Form API parameters.
+    /**
+     * Symbol to search.
+     */
+    const symbol: string = searchSymbol
+    /**
+     * Sorting basis.
+     */
+    const sort: 'asc' | 'desc' | 'newest' | 'oldest' = 'asc'
+    let dataRangeQuery: string
+    let mode: 'history' | 'intraday'
+    
+    if ( dataRange !== DataRange.Short ) {
+        // HISTORY data.
+        /**
+         * Start date of HISTORY data retrieval.
+         *
+         * YYYY-MM-DD
+         */
+        let date_from: string = ''
+
+        const now = new Date()
+        const dataRangeTime = dataRange === DataRange.Medium ?
+                // 1 Year.
+                1 * 365 * 24 * 60 * 60 * 1000 :
+                // 10 Years.
+                10 * 365 * 24 * 60 * 60 * 1000
+        const nBack = new Date(
+            now.getTime() +
+            ( -dataRangeTime ) +
+            // Load extra data based on averagingFrameLength.
+            ( -2 * maxAveragingFrameLength * 24 * 60 * 60 * 1000 )
+        )
+        const year = nBack.getUTCFullYear()
+        const month = nBack.getUTCMonth() + 1
+        const date = nBack.getUTCDate()
+        date_from = `${year}-${month >= 10 ? '' : 0}${month}-${date >= 10 ? '' : 0}${date}`
+        console.log('Data from',date_from)
+
+        mode = 'history'
+        dataRangeQuery = `date_from=${date_from}`
+    } else {
+        // INTRADAY data.
+        /**
+         * Number of minutes between data points for INTRADAY data retrieval.
+         */
+        let interval: string = ''
+        /**
+         * Number of days data is returned for INTRADAY data retrieval.
+         */
+        let range: string = ''
+
+        interval = '5'
+        range = '30'
+
+        mode = 'intraday'
+        dataRangeQuery = `interval=${interval}&range=${range}`
+    }
+
+    if ( dataSource.source === 'arction-internal' ) {
+        fetch(`https://trading-data-facade.azurewebsites.net/?source=worldtradingdata.com&mode=${mode}&${dataRangeQuery}&symbol=${symbol}&sort=${sort}`)
+            .then((response) => response.json())
+            .then((data) => {
+                renderOHLCData(`${searchSymbol} ${mode}`, data)
+            })
+            .catch((reason) => {
+                dataSearchFailed( searchSymbol )
+            })
+    } else if ( dataSource.source === 'worldtradingdata.com' ) {
         // Use worldtradingdata.com API.
         console.log('Requesting worldtradingdata.com for \'' + searchSymbol + '\'')
         /**
-         * Symbol to search.
+         * worldtradingdata.com API Token.
          */
-        const symbol: string = searchSymbol
-        /**
-         * Free worldtradingdata.com API Token.
-         */
-        const apiToken: 'demo' | string = dataSourceApiToken
-        /**
-         * Sorting basis.
-         */
-        const sort: 'asc' | 'desc' | 'newest' | 'oldest' = 'asc'
-        let dataRangeQuery: string
-        let mode: 'history' | 'intraday'
-        
-        if ( dataRange !== DataRange.Short ) {
-            // HISTORY data.
-            /**
-             * Start date of HISTORY data retrieval.
-             *
-             * YYYY-MM-DD
-             */
-            let date_from: string = ''
+        const apiToken: 'demo' | string = dataSource.apiToken
 
-            const now = new Date()
-            const dataRangeTime = dataRange === DataRange.Medium ?
-                    // 1 Year.
-                    1 * 365 * 24 * 60 * 60 * 1000 :
-                    // 10 Years.
-                    10 * 365 * 24 * 60 * 60 * 1000
-            const nBack = new Date(
-                now.getTime() +
-                ( -dataRangeTime ) +
-                // Load extra data based on averagingFrameLength.
-                ( -2 * maxAveragingFrameLength * 24 * 60 * 60 * 1000 )
-            )
-            const year = nBack.getUTCFullYear()
-            const month = nBack.getUTCMonth() + 1
-            const date = nBack.getUTCDate()
-            date_from = `${year}-${month >= 10 ? '' : 0}${month}-${date >= 10 ? '' : 0}${date}`
-            console.log('Data from',date_from)
-
-            mode = 'history'
-            dataRangeQuery = `date_from=${date_from}`
-        } else {
-            // INTRADAY data.
-            /**
-             * Number of minutes between data points for INTRADAY data retrieval.
-             */
-            let interval: string = ''
-            /**
-             * Number of days data is returned for INTRADAY data retrieval.
-             */
-            let range: string = ''
-
-            interval = '5'
-            range = '30'
-
-            mode = 'intraday'
-            dataRangeQuery = `interval=${interval}&range=${range}`
-        }
         fetch(`https://www.worldtradingdata.com/api/v1/${mode}?${dataRangeQuery}&symbol=${symbol}&sort=${sort}&api_token=${apiToken}`)
-            // It would seem that worldtradingdata.com doesn't set response.ok flag when requested stock is not found.    
-            // .then((response) => {
-            //     if (! response.ok)
-            //         dataSearchFailed( searchSymbol )
-            //     else
-            //         return response
-            // })
             .then((response) => response.json())
             .then((result) => {
                 // Check for static error message.
@@ -763,6 +752,9 @@ const searchData = () => {
                     const data = result[ mode ]
                     renderOHLCData(`${searchSymbol} ${mode}`, data)
                 }
+            })
+            .catch((reason) => {
+                dataSearchFailed( searchSymbol )
             })
     }
     else
