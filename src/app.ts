@@ -653,9 +653,11 @@ const maxAveragingFrameLength = Math.max(
 // Function that handles event where data search failed.
 const dataSearchFailed = ( searchSymbol: string ) => {
     console.log('No data found for \'', searchSymbol, '\'')
-    // Set title of OHLC Chart to show no data was found.
-    if ( chartOHLCTitle )
-        chartOHLCTitle.setText( 'No data found for \'' + searchSymbol + '\'' )
+    alert( `Data for '${searchSymbol}' not found. May be that:
+1) Search symbol is not valid stock label.
+2) Requested stock data or data-range is not available from worldtradingdata.com.
+3) Data subscription limit has been reached for this day.
+` )
 }
 
 // Define function that searches OHLC data.
@@ -823,8 +825,8 @@ colors.set( AppColor.Labels, ColorRGBA( 235, 190, 0 ) )
 colors.set( AppColor.Ticks, colors.get( AppColor.Labels ) )
 colors.set( AppColor.CandlePositive, ColorRGBA( 28, 231, 69 ) )
 colors.set( AppColor.CandleNegative, ColorRGBA( 219, 40, 68 ) )
-colors.set( AppColor.SMA, ColorRGBA( 219, 40, 68 ) )
-colors.set( AppColor.EMA, ColorRGBA( 28, 231, 69 ) )
+colors.set( AppColor.SMA, ColorRGBA( 254, 204, 0 ) )
+colors.set( AppColor.EMA, ColorRGBA( 255, 255, 255 ) )
 colors.set( AppColor.VolumeFill, ColorRGBA( 254, 204, 0 ) )
 colors.set( AppColor.VolumeStroke, ColorRGBA( 0, 0, 0, 0 ) )
 colors.set( AppColor.BollingerFill, ColorRGBA( 255, 255, 255, 13 ) )
