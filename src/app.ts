@@ -13,7 +13,7 @@ let dataSource: {
     apiToken: string
 }
 dataSource = { source: 'arction-internal' }
-// dataSource = { source: 'worldtradingdata.com', apiToken: 'my-api-token' }
+dataSource = { source: 'worldtradingdata.com', apiToken: 'cSMESEaFSyfx3m9qdna5lXYEdYlnzadFOIlIAMEE7OihsT5b1bquQdTcZWus' }
 
 
 // To disable/enable/modify charts inside application, alter values below:
@@ -910,6 +910,10 @@ for ( let i = 0; i < charts.length; i ++ ) {
         const isChartWithMasterAxis = axisX === masterAxis
 
         for ( const axis of axes ) { 
+            axis
+                .setAnimationScroll( undefined )
+                .setAnimationZoom( undefined )
+
             const tickStyle = axis.getTickStyle()
             if ( tickStyle !== emptyTick )
                 axis
