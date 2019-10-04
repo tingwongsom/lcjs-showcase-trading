@@ -209,6 +209,8 @@ if ( chartConfigOHLC.show ) {
         .setName( 'OHLC' )
         // Disable data-cleaning.
         .setMaxPointsCount( undefined )
+        // Disable auto fitting of Figures (meaning, show one figure for one input data point).
+        .setFigureAutoFitting( false )
 }
 //#endregion
 
@@ -718,7 +720,7 @@ const searchData = () => {
          */
         let range: string = ''
 
-        interval = '5'
+        interval = '15'
         range = '30'
 
         mode = 'intraday'
@@ -966,7 +968,7 @@ if ( seriesOHLC )
             .setBodyFillStyle( solidFills.get( AppColor.CandleNegative ) )
             .setStrokeStyle( solidLines.get( AppColor.CandleNegative ).get( AppLineThickness.Thin ) )
         )
-        .setFigureWidth( 10 )
+        .setFigureWidth( 5 )
         .setMouseInteractions( false )
 
 if ( seriesSMA )
