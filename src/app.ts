@@ -330,24 +330,20 @@ if ( chartConfigRSI.show ) {
         .setInterval( 0, 100 )
         .setScrollStrategy( undefined )
 
-    // TODO: What is this TypeScript error? This should be the right builder.
-    ticksRSI.push( axisY.addCustomTick( <any>tickWithoutBackgroundBuilder )
+    ticksRSI.push( axisY.addCustomTick( tickWithoutBackgroundBuilder )
         .setValue( 0 )
         // Disable gridline.
         .setGridStrokeLength( 0 )
     )
-    // TODO: What is this TypeScript error? This should be the right builder.
-    ticksRSI.push( axisY.addCustomTick( <any>tickWithoutBackgroundBuilder )
+    ticksRSI.push( axisY.addCustomTick( tickWithoutBackgroundBuilder )
         .setValue( 100 )
         // Disable gridline.
         .setGridStrokeLength( 0 )
     )
-    // TODO: What is this TypeScript error? This should be the right builder.
-    tickRSIThresholdLow = axisY.addCustomTick( <any>tickWithoutBackgroundBuilder )
+    tickRSIThresholdLow = axisY.addCustomTick( tickWithoutBackgroundBuilder )
         .setValue( 30 )
     ticksRSI.push( tickRSIThresholdLow )
-    // TODO: What is this TypeScript error? This should be the right builder.
-    tickRSIThresholdHigh = axisY.addCustomTick( <any>tickWithoutBackgroundBuilder )
+    tickRSIThresholdHigh = axisY.addCustomTick( tickWithoutBackgroundBuilder )
         .setValue( 70 )
     ticksRSI.push( tickRSIThresholdHigh )
 }
@@ -590,8 +586,7 @@ const renderOHLCData = ( name: string, data: AppDataFormat ) => {
             const date = getDateFromIndex( x )
             const day = date.getDate()
             if ( prevDay === undefined || day !== prevDay ) {
-                // TODO: What is this error? It should be correct builder type.
-                dateTimeTicks.push(masterAxis.addCustomTick( <any>tickWithoutBackgroundBuilder )
+                dateTimeTicks.push(masterAxis.addCustomTick( tickWithoutBackgroundBuilder )
                     .setValue( x )
                     // No gridlines.
                     .setGridStrokeLength( 0 )
@@ -609,8 +604,7 @@ const renderOHLCData = ( name: string, data: AppDataFormat ) => {
             const date = getDateFromIndex( x )
             const month = date.getMonth()
             if ( prevMonth === undefined || month !== prevMonth ) {
-                // TODO: What is this error? It should be correct builder type.
-                dateTimeTicks.push(masterAxis.addCustomTick( <any>tickWithoutBackgroundBuilder )
+                dateTimeTicks.push(masterAxis.addCustomTick( tickWithoutBackgroundBuilder )
                     .setValue( x )
                     // No gridlines.
                     .setGridStrokeLength( 0 )
@@ -628,8 +622,7 @@ const renderOHLCData = ( name: string, data: AppDataFormat ) => {
             const date = getDateFromIndex( x )
             const year = date.getFullYear()
             if ( prevYear === undefined || year !== prevYear ) {
-                // TODO: What is this error? It should be correct builder type.
-                dateTimeTicks.push(masterAxis.addCustomTick( <any>tickWithoutBackgroundBuilder )
+                dateTimeTicks.push(masterAxis.addCustomTick( tickWithoutBackgroundBuilder )
                     .setValue( x )
                     // No gridlines.
                     .setGridStrokeLength( 0 )
@@ -939,8 +932,7 @@ for ( let i = 0; i < charts.length; i ++ ) {
                 // Disable mouse interactions on hidden Axes.
                 .setMouseInteractions( false )
                 .setStrokeStyle( emptyLine )
-                // TODO: Why cant Nibs be hidden?
-                .setNibStyle( <any>emptyLine )
+                .setNibStyle( emptyLine )
         }
     }
 }
@@ -1086,8 +1078,7 @@ const tickWithoutLabelBuilder = tickWithoutBackgroundBuilder
         .setTextFillStyle( emptyFill )
     )
 const verticalCursorGrids = charts.map(( chart ) => chart ?
-    // TODO: What is this TypeScript error? This should be the right builder.
-    chart.getDefaultAxisX().addCustomTick( <any>tickWithoutLabelBuilder ).dispose() :
+    chart.getDefaultAxisX().addCustomTick( tickWithoutLabelBuilder ).dispose() :
     undefined
 )
 // Update gridlines when mouse is moved.
