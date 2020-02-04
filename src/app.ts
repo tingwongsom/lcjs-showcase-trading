@@ -1,5 +1,7 @@
+// polyfill window.fetch for browsers which don't natively support it.
+import 'whatwg-fetch'
 import { lightningChart, emptyFill, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, Axis, VisibleTicks, emptyLine, transparentFill, emptyTick, transparentLine, AreaSeries, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds } from "@arction/lcjs"
-import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relativeStrengthIndex  } from '@arction/lcjs-analysis'
+import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relativeStrengthIndex } from '@arction/lcjs-analysis'
 
 //#region ----- Application configuration -----
 
@@ -70,29 +72,29 @@ const domElementIDs = {
 }
 const domElements = new Map<string, HTMLElement>()
 Object.keys(domElementIDs).forEach((key) => {
-    const domElementID = domElementIDs[ key ]
-    const domElement = document.getElementById( domElementID )
-    if ( domElement === undefined )
-        throw new Error( 'DOM element not found: ' + domElementID )
-    domElements.set( domElementID, domElement )
+    const domElementID = domElementIDs[key]
+    const domElement = document.getElementById(domElementID)
+    if (domElement === undefined)
+        throw new Error('DOM element not found: ' + domElementID)
+    domElements.set(domElementID, domElement)
 })
 
 enum DataRange { Short, Medium, Long }
 let dataRange = DataRange.Medium
-domElements.get( domElementIDs.dataSearchRange1 ).addEventListener('change', () => dataRange = DataRange.Short)
-domElements.get( domElementIDs.dataSearchRange2 ).addEventListener('change', () => dataRange = DataRange.Medium)
-domElements.get( domElementIDs.dataSearchRange3 ).addEventListener('change', () => dataRange = DataRange.Long)
+domElements.get(domElementIDs.dataSearchRange1).addEventListener('change', () => dataRange = DataRange.Short)
+domElements.get(domElementIDs.dataSearchRange2).addEventListener('change', () => dataRange = DataRange.Medium)
+domElements.get(domElementIDs.dataSearchRange3).addEventListener('change', () => dataRange = DataRange.Long)
 
 //#endregion
 
 //#region ----- Create Dashboard and Charts -----
 
 //#region ----- Create Dashboard -----
-const chartConfigs = [ chartConfigOHLC, chartConfigVolume, chartConfigRSI ]
+const chartConfigs = [chartConfigOHLC, chartConfigVolume, chartConfigRSI]
 /**
  * Utility function for counting the row span before a specified chart index.
  */
-const countRowSpanForChart = ( chartIndex: number ) => chartConfigs.reduce(
+const countRowSpanForChart = (chartIndex: number) => chartConfigs.reduce(
     (sum, chartConfig, i) => sum + (chartConfig.show && i < chartIndex ? chartConfig.verticalSpans : 0),
     0
 )
@@ -102,25 +104,25 @@ const dashboard = lightningChart().Dashboard({
     containerId: domElementIDs.chartContainer,
     numberOfColumns: 1,
     // Count row span for all charts.
-    numberOfRows: countRowSpanForChart( chartConfigs.length )
+    numberOfRows: countRowSpanForChart(chartConfigs.length)
 })
 //#endregion
 
 // Create custom X tick strategy for indexed Date values. Object must fulfill interface: AxisTickStrategy.
-let dateTimeFormatter = { format: ( date ) => '' }
+let dateTimeFormatter = { format: (date) => '' }
 // Function which gets Date from indexed X coordinate.
-let getDateFromIndex: ( x: number ) => Date = ( x ) => undefined
+let getDateFromIndex: (x: number) => Date = (x) => undefined
 const dateTimeTickStrategy = {
     computeMinimalPrecision: AxisTickStrategies.Numeric.computeMinimalPrecision,
-    formatValue: ( x: number ) => dateTimeFormatter.format( getDateFromIndex( Math.round( x ) ) )
+    formatValue: (x: number) => dateTimeFormatter.format(getDateFromIndex(Math.round(x)))
 }
 // Builder for CustomTicks ticks with no Background.
 let tickWithoutBackgroundBuilder = UIElementBuilders.PointableTextBox
-    .addStyler(( pointableTextBox ) => pointableTextBox
-        .setBackground(( background ) => background
-            .setFillStyle( emptyFill )
-            .setStrokeStyle( emptyLine )
-            .setPointerLength( 0 )
+    .addStyler((pointableTextBox) => pointableTextBox
+        .setBackground((background) => background
+            .setFillStyle(emptyFill)
+            .setStrokeStyle(emptyLine)
+            .setPointerLength(0)
         )
     )
 
@@ -132,85 +134,85 @@ let seriesEMA: LineSeries | undefined
 let seriesBollinger: AreaRangeSeries | undefined
 let chartOHLCTitle: UITextBox | undefined
 
-if ( chartConfigOHLC.show ) {
+if (chartConfigOHLC.show) {
     chartOHLC = dashboard.createChartXY({
         columnIndex: 0,
         columnSpan: 1,
-        rowIndex: countRowSpanForChart( chartConfigs.indexOf( chartConfigOHLC ) ),
+        rowIndex: countRowSpanForChart(chartConfigs.indexOf(chartConfigOHLC)),
         rowSpan: chartConfigOHLC.verticalSpans,
         chartXYOptions: {
             defaultAxisXTickStrategy: dateTimeTickStrategy
         }
     })
-    
+
     // Create custom title attached to the top of Y Axis.
     const axisX = chartOHLC.getDefaultAxisX()
     const axisY = chartOHLC.getDefaultAxisY()
     const _chartOHLCTitle = chartOHLC.addUIElement(
         UIElementBuilders.TextBox
-            .setBackground( UIBackgrounds.Rectangle ),
+            .setBackground(UIBackgrounds.Rectangle),
         {
             x: axisX.scale,
             y: axisY.scale
         }
     )
-        .setText( '' )
+        .setText('')
         .setPosition({ x: 0, y: 10 })
-        .setOrigin( UIOrigins.LeftTop )
-        .setDraggingMode( UIDraggingModes.notDraggable )
+        .setOrigin(UIOrigins.LeftTop)
+        .setDraggingMode(UIDraggingModes.notDraggable)
         // Set dark, tinted Background style.
-        .setBackground(( background ) => background
-            .setFillStyle( new SolidFill({ color: ColorHEX('#000').setA(150) }) )
-            .setStrokeStyle( emptyLine )
+        .setBackground((background) => background
+            .setFillStyle(new SolidFill({ color: ColorHEX('#000').setA(150) }))
+            .setStrokeStyle(emptyLine)
         )
     chartOHLCTitle = _chartOHLCTitle
     // Follow Axis interval changes to keep title positioned where it should be.
     axisX.onScaleChange((start, end) => _chartOHLCTitle.setPosition({ x: start, y: axisY.scale.getInnerEnd() }))
     axisY.onScaleChange((start, end) => _chartOHLCTitle.setPosition({ x: axisX.scale.getInnerStart(), y: end }))
 
-    if ( chartConfigOHLC.bollinger.show ) {
+    if (chartConfigOHLC.bollinger.show) {
         // Create Bollinger Series.
         seriesBollinger = chartOHLC.addAreaRangeSeries()
-            .setName( 'Bollinger Band' )
+            .setName('Bollinger Band')
             // Disable data-cleaning.
-            .setMaxPointCount( undefined )
+            .setMaxPointCount(undefined)
             // Disable cursor interpolation.
-            .setCursorInterpolationEnabled( false )
+            .setCursorInterpolationEnabled(false)
     }
-    if ( chartConfigOHLC.sma.show ) {
+    if (chartConfigOHLC.sma.show) {
         // Create SMA Series.
         seriesSMA = chartOHLC.addLineSeries({
             // Use freeform to behave similarly as OHLC ( freeform mouse-picking ).
             dataPattern: DataPatterns.freeform
         })
-            .setName( 'SMA' )
+            .setName('SMA')
             // Disable data-cleaning.
-            .setMaxPointCount( undefined )
+            .setMaxPointCount(undefined)
             // Disable cursor interpolation.
-            .setCursorInterpolationEnabled( false )
+            .setCursorInterpolationEnabled(false)
     }
-    if ( chartConfigOHLC.ema.show ) {
+    if (chartConfigOHLC.ema.show) {
         // Create EMA Series.
         seriesEMA = chartOHLC.addLineSeries({
             // Use freeform to behave similarly as OHLC ( freeform mouse-picking ).
             dataPattern: DataPatterns.freeform
         })
-            .setName( 'EMA' )
+            .setName('EMA')
             // Disable data-cleaning.
-            .setMaxPointCount( undefined )
+            .setMaxPointCount(undefined)
             // Disable cursor interpolation.
-            .setCursorInterpolationEnabled( false )
+            .setCursorInterpolationEnabled(false)
     }
     // Create OHLC Series.
     seriesOHLC = chartOHLC.addOHLCSeries({
         positiveFigure: OHLCFigures.Candlestick,
         negativeFigure: OHLCFigures.Candlestick
     })
-        .setName( 'OHLC' )
+        .setName('OHLC')
         // Disable data-cleaning.
-        .setMaxPointsCount( undefined )
+        .setMaxPointsCount(undefined)
         // Disable auto fitting of Figures (meaning, show one figure for one input data point).
-        .setFigureAutoFitting( false )
+        .setFigureAutoFitting(false)
 }
 //#endregion
 
@@ -219,11 +221,11 @@ let chartVolume: ChartXY | undefined
 let seriesVolume: AreaSeriesPositive | undefined
 let chartVolumeTitle: UITextBox | undefined
 
-if ( chartConfigVolume.show ) {
+if (chartConfigVolume.show) {
     chartVolume = dashboard.createChartXY({
         columnIndex: 0,
         columnSpan: 1,
-        rowIndex: countRowSpanForChart( chartConfigs.indexOf( chartConfigVolume ) ),
+        rowIndex: countRowSpanForChart(chartConfigs.indexOf(chartConfigVolume)),
         rowSpan: chartConfigVolume.verticalSpans,
         chartXYOptions: {
             defaultAxisXTickStrategy: dateTimeTickStrategy,
@@ -237,20 +239,20 @@ if ( chartConfigVolume.show ) {
     const axisY = chartVolume.getDefaultAxisY()
     const _chartVolumeTitle = chartVolume.addUIElement(
         UIElementBuilders.TextBox
-            .setBackground( UIBackgrounds.Rectangle ),
+            .setBackground(UIBackgrounds.Rectangle),
         {
             x: axisX.scale,
             y: axisY.scale
         }
     )
-        .setText( 'Volume' )
+        .setText('Volume')
         .setPosition({ x: 0, y: 10 })
-        .setOrigin( UIOrigins.LeftTop )
-        .setDraggingMode( UIDraggingModes.notDraggable )
+        .setOrigin(UIOrigins.LeftTop)
+        .setDraggingMode(UIDraggingModes.notDraggable)
         // Set dark, tinted Background style.
-        .setBackground(( background ) => background
-            .setFillStyle( new SolidFill({ color: ColorHEX('#000').setA(150) }) )
-            .setStrokeStyle( emptyLine )
+        .setBackground((background) => background
+            .setFillStyle(new SolidFill({ color: ColorHEX('#000').setA(150) }))
+            .setStrokeStyle(emptyLine)
         )
     chartVolumeTitle = _chartVolumeTitle
     // Follow Axis interval changes to keep title positioned where it should be.
@@ -261,11 +263,11 @@ if ( chartConfigVolume.show ) {
     seriesVolume = chartVolume.addAreaSeries({
         type: AreaSeriesTypes.Positive
     })
-        .setName( 'Volume' )
+        .setName('Volume')
         // Disable data-cleaning.
-        .setMaxPointCount( undefined )
+        .setMaxPointCount(undefined)
         // Disable cursor interpolation.
-        .setCursorInterpolationEnabled( false )
+        .setCursorInterpolationEnabled(false)
 }
 //#endregion
 
@@ -277,11 +279,11 @@ let ticksRSI: CustomTick[] = []
 let tickRSIThresholdLow: CustomTick | undefined
 let tickRSIThresholdHigh: CustomTick | undefined
 
-if ( chartConfigRSI.show ) {
+if (chartConfigRSI.show) {
     chartRSI = dashboard.createChartXY({
         columnIndex: 0,
         columnSpan: 1,
-        rowIndex: countRowSpanForChart( chartConfigs.indexOf( chartConfigRSI ) ),
+        rowIndex: countRowSpanForChart(chartConfigs.indexOf(chartConfigRSI)),
         rowSpan: chartConfigRSI.verticalSpans,
         chartXYOptions: {
             defaultAxisXTickStrategy: dateTimeTickStrategy
@@ -293,20 +295,20 @@ if ( chartConfigRSI.show ) {
     const axisY = chartRSI.getDefaultAxisY()
     const _chartRSITitle = chartRSI.addUIElement(
         UIElementBuilders.TextBox
-            .setBackground( UIBackgrounds.Rectangle ),
+            .setBackground(UIBackgrounds.Rectangle),
         {
             x: axisX.scale,
             y: axisY.scale
         }
     )
-        .setText( 'RSI' )
+        .setText('RSI')
         .setPosition({ x: 0, y: 10 })
-        .setOrigin( UIOrigins.LeftTop )
-        .setDraggingMode( UIDraggingModes.notDraggable )
+        .setOrigin(UIOrigins.LeftTop)
+        .setDraggingMode(UIDraggingModes.notDraggable)
         // Set dark, tinted Background style.
-        .setBackground(( background ) => background
-            .setFillStyle( new SolidFill({ color: ColorHEX('#000').setA(150) }) )
-            .setStrokeStyle( emptyLine )
+        .setBackground((background) => background
+            .setFillStyle(new SolidFill({ color: ColorHEX('#000').setA(150) }))
+            .setStrokeStyle(emptyLine)
         );
     chartRSITitle = _chartRSITitle
     // Follow Axis interval changes to keep title positioned where it should be.
@@ -317,41 +319,41 @@ if ( chartConfigRSI.show ) {
     seriesRSI = chartRSI.addLineSeries({
         dataPattern: DataPatterns.horizontalProgressive
     })
-        .setName( 'RSI' )
+        .setName('RSI')
         // Disable data-cleaning.
-        .setMaxPointCount( undefined )
+        .setMaxPointCount(undefined)
         // Disable cursor interpolation.
-        .setCursorInterpolationEnabled( false )
+        .setCursorInterpolationEnabled(false)
 
     // Create RSI ticks with CustomTicks, to better indicate common thresholds of 30% and 70%.
     axisY
-        .setTickStyle( emptyTick )
+        .setTickStyle(emptyTick)
         // RSI interval always from 0 to 100.
-        .setInterval( 0, 100 )
-        .setScrollStrategy( undefined )
+        .setInterval(0, 100)
+        .setScrollStrategy(undefined)
 
-    ticksRSI.push( axisY.addCustomTick( tickWithoutBackgroundBuilder )
-        .setValue( 0 )
+    ticksRSI.push(axisY.addCustomTick(tickWithoutBackgroundBuilder)
+        .setValue(0)
         // Disable gridline.
-        .setGridStrokeLength( 0 )
+        .setGridStrokeLength(0)
     )
-    ticksRSI.push( axisY.addCustomTick( tickWithoutBackgroundBuilder )
-        .setValue( 100 )
+    ticksRSI.push(axisY.addCustomTick(tickWithoutBackgroundBuilder)
+        .setValue(100)
         // Disable gridline.
-        .setGridStrokeLength( 0 )
+        .setGridStrokeLength(0)
     )
-    tickRSIThresholdLow = axisY.addCustomTick( tickWithoutBackgroundBuilder )
-        .setValue( 30 )
-    ticksRSI.push( tickRSIThresholdLow )
-    tickRSIThresholdHigh = axisY.addCustomTick( tickWithoutBackgroundBuilder )
-        .setValue( 70 )
-    ticksRSI.push( tickRSIThresholdHigh )
+    tickRSIThresholdLow = axisY.addCustomTick(tickWithoutBackgroundBuilder)
+        .setValue(30)
+    ticksRSI.push(tickRSIThresholdLow)
+    tickRSIThresholdHigh = axisY.addCustomTick(tickWithoutBackgroundBuilder)
+        .setValue(70)
+    ticksRSI.push(tickRSIThresholdHigh)
 }
 //#endregion
 
 //#region ----- Configure Axes -----
-const charts = [ chartOHLC, chartVolume, chartRSI ]
-const chartTitles = [ chartOHLCTitle, chartVolumeTitle, chartRSITitle ]
+const charts = [chartOHLC, chartVolume, chartRSI]
+const chartTitles = [chartOHLCTitle, chartVolumeTitle, chartRSITitle]
 // Find lowest shown Chart index.
 const lowestShownChartIndex = chartConfigs.reduce(
     (prev, chartConfig, i) => chartConfig.show ? i : prev,
@@ -359,29 +361,29 @@ const lowestShownChartIndex = chartConfigs.reduce(
 )
 // Find highest shown Chart index.
 const highestShownChartIndex = chartConfigs.reduce(
-    (prev, chartConfig, i) => chartConfig.show ? Math.min( i, prev ) : prev,
+    (prev, chartConfig, i) => chartConfig.show ? Math.min(i, prev) : prev,
     Number.MAX_SAFE_INTEGER
 )
-const masterAxis = charts[ lowestShownChartIndex ].getDefaultAxisX()
+const masterAxis = charts[lowestShownChartIndex].getDefaultAxisX()
 
 // Bind X Axes together.
-const HandleScaleChangeX = ( chartIndex: number ) => {
-    return ( start: number, end: number ) => {
-        for ( let i = 0; i < charts.length; i ++ ) {
-            if ( chartConfigs[i].show ) {
-                const axis = charts[ i ].getDefaultAxisX()
-                if ( i !== chartIndex && (axis.scale.getInnerStart() !== start || axis.scale.getInnerEnd() !== end) )
-                    axis.setInterval( start, end )
+const HandleScaleChangeX = (chartIndex: number) => {
+    return (start: number, end: number) => {
+        for (let i = 0; i < charts.length; i++) {
+            if (chartConfigs[i].show) {
+                const axis = charts[i].getDefaultAxisX()
+                if (i !== chartIndex && (axis.scale.getInnerStart() !== start || axis.scale.getInnerEnd() !== end))
+                    axis.setInterval(start, end)
             }
         }
     }
 }
-for ( let i = 0; i < charts.length; i ++ ) {
-    if ( chartConfigs[i].show ) {
+for (let i = 0; i < charts.length; i++) {
+    if (chartConfigs[i].show) {
         const chart = charts[i]
         chart.getDefaultAxisX()
-            .setScrollStrategy( undefined )
-            .onScaleChange( HandleScaleChangeX( i ) )
+            .setScrollStrategy(undefined)
+            .onScaleChange(HandleScaleChangeX(i))
     }
 }
 
@@ -409,7 +411,7 @@ type AppDataFormat = { [key: string]: StringOHLCWithVolume }
 
 const dateTimeTicks: CustomTick[] = []
 let dataExists = false
-const renderOHLCData = ( name: string, data: AppDataFormat ) => {
+const renderOHLCData = (name: string, data: AppDataFormat) => {
     dataExists = true
     //#region ----- Prepare data for rendering with LCJS -----
     // Map values to LCJS accepted format, with an additional X value.
@@ -421,17 +423,17 @@ const renderOHLCData = ( name: string, data: AppDataFormat ) => {
     const tStart = window.performance.now()
 
     // Get starting Date from first item.
-    const dataKeys = Object.keys( data )
+    const dataKeys = Object.keys(data)
     const dataKeysLen = dataKeys.length
     // Index data-values starting from X = 0.
-    for ( let x = 0; x < dataKeysLen; x ++ ) {
-        const key = dataKeys[ x ]
-        const stringValues = data[ key ]
-        const o = Number( stringValues.open )
-        const h = Number( stringValues.high )
-        const l = Number( stringValues.low )
-        const c = Number( stringValues.close )
-        const volume = Number( stringValues.volume )
+    for (let x = 0; x < dataKeysLen; x++) {
+        const key = dataKeys[x]
+        const stringValues = data[key]
+        const o = Number(stringValues.open)
+        const h = Number(stringValues.high)
+        const l = Number(stringValues.low)
+        const c = Number(stringValues.close)
+        const volume = Number(stringValues.volume)
 
         xohlcValues.push([x, o, h, l, c])
         volumeValues.push({ x, y: volume })
@@ -441,32 +443,32 @@ const renderOHLCData = ( name: string, data: AppDataFormat ) => {
     //#endregion 38
 
     // Define getDateFromIndex function.
-    getDateFromIndex = ( x ) => {
+    getDateFromIndex = (x) => {
         // Get Date directly from data.
-        if ( x in dataKeys )
-            return new Date( dataKeys[ x ] )
+        if (x in dataKeys)
+            return new Date(dataKeys[x])
         else
             return undefined
     }
     // Set DateTimeFormatter.
     dateTimeFormatter = dataRange === DataRange.Short ?
-        new Intl.DateTimeFormat( undefined, { day: 'numeric', month: 'short', minute: 'numeric', hour: 'numeric' } ) :
-        new Intl.DateTimeFormat( undefined, { day: 'numeric', month: 'long', year: 'numeric' } )
+        new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', minute: 'numeric', hour: 'numeric' }) :
+        new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'long', year: 'numeric' })
 
     // Translate averagingFrameLengths to days.
     // Count amount of data-points per day (assumed to be roughly the same for each day).
     let firstDays = []
     let dataPointsPerDay: number
-    for ( let x = 0; x < dataKeysLen; x ++ ) {
-        const date = getDateFromIndex( x ).getDate()
-        if ( firstDays.length === 0 )
+    for (let x = 0; x < dataKeysLen; x++) {
+        const date = getDateFromIndex(x).getDate()
+        if (firstDays.length === 0)
             firstDays[0] = { date, x }
         else {
-            if ( firstDays.length === 1 ) {
-                if ( date !== firstDays[0].date )
+            if (firstDays.length === 1) {
+                if (date !== firstDays[0].date)
                     firstDays[1] = { date, x }
             } else {
-                if ( date !== firstDays[1].date ) {
+                if (date !== firstDays[1].date) {
                     dataPointsPerDay = x - firstDays[1].x
                     break
                 }
@@ -478,156 +480,156 @@ const renderOHLCData = ( name: string, data: AppDataFormat ) => {
     const averagingFrameLength = dataRange === DataRange.Short ? 'averagingFrameLengthIntraday' : 'averagingFrameLength'
 
     //#region OHLC.
-    if ( seriesOHLC ) {
+    if (seriesOHLC) {
         seriesOHLC
             .clear()
-            .add( xohlcValues )
+            .add(xohlcValues)
     }
     //#endregion
 
     //#region SMA.
-    if ( seriesSMA ) {
+    if (seriesSMA) {
         // Compute SMA values from XOHLC values using data-analysis library.
-        const smaValues = simpleMovingAverage( xohlcValues, Math.round(chartConfigOHLC.sma[averagingFrameLength] * dataPointsPerDay) )
+        const smaValues = simpleMovingAverage(xohlcValues, Math.round(chartConfigOHLC.sma[averagingFrameLength] * dataPointsPerDay))
         seriesSMA
             .clear()
-            .add( smaValues )
+            .add(smaValues)
     }
     //#endregion
 
     //#region EMA.
-    if ( seriesEMA ) {
+    if (seriesEMA) {
         // Compute EMA values from XOHLC values using data-analysis library.
-        const emaValues = exponentialMovingAverage( xohlcValues, Math.round(chartConfigOHLC.sma[averagingFrameLength] * dataPointsPerDay) )
+        const emaValues = exponentialMovingAverage(xohlcValues, Math.round(chartConfigOHLC.sma[averagingFrameLength] * dataPointsPerDay))
         seriesEMA
             .clear()
-            .add( emaValues )
+            .add(emaValues)
     }
     //#endregion
 
     //#region Bollinger.
-    if ( seriesBollinger ) {
+    if (seriesBollinger) {
         // Compute Bollinger bands points.
-        const bollingerBandPoints = bollingerBands( xohlcValues, Math.round(chartConfigOHLC.bollinger[averagingFrameLength] * dataPointsPerDay) )
+        const bollingerBandPoints = bollingerBands(xohlcValues, Math.round(chartConfigOHLC.bollinger[averagingFrameLength] * dataPointsPerDay))
         seriesBollinger
             .clear()
-            .add( bollingerBandPoints )
+            .add(bollingerBandPoints)
     }
     //#endregion
 
     //#region Volume
-    if ( seriesVolume ) {
+    if (seriesVolume) {
         // To render Volume values as Histogram bars, map 'volumeValues' and add step values between data-points.
         const histogramBarValues: Point[] = []
         let prev: Point | undefined
-        for ( let i = 0; i < volumeValuesLen; i ++ ) {
-            const cur = volumeValues[ i ]
+        for (let i = 0; i < volumeValuesLen; i++) {
+            const cur = volumeValues[i]
             // Add step between previous value and cur value.
-            if ( prev ) {
-                histogramBarValues.push( { x: prev.x, y: cur.y } )
+            if (prev) {
+                histogramBarValues.push({ x: prev.x, y: cur.y })
             }
-            histogramBarValues.push( cur )
+            histogramBarValues.push(cur)
             prev = cur
         }
 
         seriesVolume
             .clear()
-            .add( histogramBarValues )
+            .add(histogramBarValues)
     }
     //#endregion
 
     //#region RSI.
 
     //#endregion
-    if ( seriesRSI ) {
+    if (seriesRSI) {
         // Compute RSI values from XOHLC values using data-analysis library.
-        const rsiValues = relativeStrengthIndex( xohlcValues, Math.round( chartConfigRSI[averagingFrameLength] * dataPointsPerDay ) )
+        const rsiValues = relativeStrengthIndex(xohlcValues, Math.round(chartConfigRSI[averagingFrameLength] * dataPointsPerDay))
         seriesRSI
             .clear()
-            .add( rsiValues )
+            .add(rsiValues)
     }
     //#endregion
     console.log(`Prepared data in ${((window.performance.now() - tStart) / 1000).toFixed(1)} s`)
     console.log(`${xohlcValuesLen} XOHLC values, ${volumeValuesLen} Volume values.`)
 
     // Fit new data to view.
-    masterAxis.fit( false )
-    if ( chartOHLC )
-        chartOHLC.getDefaultAxisY().fit( true )
-    if ( chartVolume )
-        chartVolume.getDefaultAxisY().fit( true )
-    if ( chartRSI )
-        chartRSI.getDefaultAxisY().setInterval( 0, 100 )
+    masterAxis.fit(false)
+    if (chartOHLC)
+        chartOHLC.getDefaultAxisY().fit(true)
+    if (chartVolume)
+        chartVolume.getDefaultAxisY().fit(true)
+    if (chartRSI)
+        chartRSI.getDefaultAxisY().setInterval(0, 100)
 
     // Set title of OHLC Chart to show name data.
-    if ( chartOHLCTitle ) {
+    if (chartOHLCTitle) {
         const dataRangeLabel = dataRange === DataRange.Short ?
-            '1 month' : ( dataRange === DataRange.Medium ?
+            '1 month' : (dataRange === DataRange.Medium ?
                 '1 year' :
                 '10 years'
             )
-        chartOHLCTitle.setText( `${name} (${dataRangeLabel})` )
+        chartOHLCTitle.setText(`${name} (${dataRangeLabel})`)
     }
     // Also set name of OHLC Series.
-    if ( seriesOHLC )
-        seriesOHLC.setName( name )
+    if (seriesOHLC)
+        seriesOHLC.setName(name)
 
     // ----- Add CustomTicks on to of default DateTime Ticks to indicate relevant dates -----
-    for ( const tick of dateTimeTicks )
+    for (const tick of dateTimeTicks)
         tick.dispose()
     dateTimeTicks.length = 0
 
     // Different Ticks based on data range.
-    if ( dataRange === DataRange.Short ) {
+    if (dataRange === DataRange.Short) {
         // Each day has its own tick.
-        const dayFormatter = new Intl.DateTimeFormat( undefined, { day: '2-digit' } )
+        const dayFormatter = new Intl.DateTimeFormat(undefined, { day: '2-digit' })
         let prevDay: number | undefined
-        for ( let x = 0; x < dataKeysLen; x ++ ) {
-            const date = getDateFromIndex( x )
+        for (let x = 0; x < dataKeysLen; x++) {
+            const date = getDateFromIndex(x)
             const day = date.getDate()
-            if ( prevDay === undefined || day !== prevDay ) {
-                dateTimeTicks.push(masterAxis.addCustomTick( tickWithoutBackgroundBuilder )
-                    .setValue( x )
+            if (prevDay === undefined || day !== prevDay) {
+                dateTimeTicks.push(masterAxis.addCustomTick(tickWithoutBackgroundBuilder)
+                    .setValue(x)
                     // No gridlines.
-                    .setGridStrokeLength( 0 )
+                    .setGridStrokeLength(0)
                     // Custom formatting.
-                    .setTextFormatter(( x ) => dayFormatter.format( getDateFromIndex( Math.round( x ) ) ))
+                    .setTextFormatter((x) => dayFormatter.format(getDateFromIndex(Math.round(x))))
                 )
                 prevDay = day
             }
         }
-    } else if ( dataRange === DataRange.Medium ) {
+    } else if (dataRange === DataRange.Medium) {
         // Each month has its own tick.
-        const startOfMonthFormatter = new Intl.DateTimeFormat( undefined, { month: 'short' } )
+        const startOfMonthFormatter = new Intl.DateTimeFormat(undefined, { month: 'short' })
         let prevMonth: number | undefined
-        for ( let x = 0; x < dataKeysLen; x ++ ) {
-            const date = getDateFromIndex( x )
+        for (let x = 0; x < dataKeysLen; x++) {
+            const date = getDateFromIndex(x)
             const month = date.getMonth()
-            if ( prevMonth === undefined || month !== prevMonth ) {
-                dateTimeTicks.push(masterAxis.addCustomTick( tickWithoutBackgroundBuilder )
-                    .setValue( x )
+            if (prevMonth === undefined || month !== prevMonth) {
+                dateTimeTicks.push(masterAxis.addCustomTick(tickWithoutBackgroundBuilder)
+                    .setValue(x)
                     // No gridlines.
-                    .setGridStrokeLength( 0 )
+                    .setGridStrokeLength(0)
                     // Custom formatting.
-                    .setTextFormatter(( x ) => startOfMonthFormatter.format( getDateFromIndex( Math.round( x ) ) ))
+                    .setTextFormatter((x) => startOfMonthFormatter.format(getDateFromIndex(Math.round(x))))
                 )
                 prevMonth = month
             }
         }
-    } else if ( dataRange === DataRange.Long ) {
+    } else if (dataRange === DataRange.Long) {
         // Each year has its own tick.
-        const dayFormatter = new Intl.DateTimeFormat( undefined, { year: 'numeric' } )
+        const dayFormatter = new Intl.DateTimeFormat(undefined, { year: 'numeric' })
         let prevYear: number | undefined
-        for ( let x = 0; x < dataKeysLen; x ++ ) {
-            const date = getDateFromIndex( x )
+        for (let x = 0; x < dataKeysLen; x++) {
+            const date = getDateFromIndex(x)
             const year = date.getFullYear()
-            if ( prevYear === undefined || year !== prevYear ) {
-                dateTimeTicks.push(masterAxis.addCustomTick( tickWithoutBackgroundBuilder )
-                    .setValue( x )
+            if (prevYear === undefined || year !== prevYear) {
+                dateTimeTicks.push(masterAxis.addCustomTick(tickWithoutBackgroundBuilder)
+                    .setValue(x)
                     // No gridlines.
-                    .setGridStrokeLength( 0 )
+                    .setGridStrokeLength(0)
                     // Custom formatting.
-                    .setTextFormatter(( x ) => dayFormatter.format( getDateFromIndex( Math.round( x ) ) ))
+                    .setTextFormatter((x) => dayFormatter.format(getDateFromIndex(Math.round(x))))
                 )
                 prevYear = year
             }
@@ -646,9 +648,9 @@ const maxAveragingFrameLength = Math.max(
 )
 
 // Function that handles event where data search failed.
-const dataSearchFailed = ( searchSymbol: string ) => {
+const dataSearchFailed = (searchSymbol: string) => {
     console.log('No data found for \'', searchSymbol, '\'')
-    alert( `Data for '${searchSymbol}' not found. May be that:
+    alert(`Data for '${searchSymbol}' not found. May be that:
 1) Search symbol is not valid stock label.
 2) Requested stock data or data-range is not available from worldtradingdata.com.
 3) Data subscription limit has been reached for this day.
@@ -658,7 +660,7 @@ const dataSearchFailed = ( searchSymbol: string ) => {
 // Define function that searches OHLC data.
 const searchData = () => {
     // Get search symbol from input field.
-    const inputField = domElements.get( domElementIDs.dataSearchInput ) as HTMLInputElement
+    const inputField = domElements.get(domElementIDs.dataSearchInput) as HTMLInputElement
     const searchSymbol = inputField.value
 
     // Form API parameters.
@@ -672,8 +674,8 @@ const searchData = () => {
     const sort: 'asc' | 'desc' | 'newest' | 'oldest' = 'asc'
     let dataRangeQuery: string
     let mode: 'history' | 'intraday'
-    
-    if ( dataRange !== DataRange.Short ) {
+
+    if (dataRange !== DataRange.Short) {
         // HISTORY data.
         /**
          * Start date of HISTORY data retrieval.
@@ -684,21 +686,21 @@ const searchData = () => {
 
         const now = new Date()
         const dataRangeTime = dataRange === DataRange.Medium ?
-                // 1 Year.
-                1 * 365 * 24 * 60 * 60 * 1000 :
-                // 10 Years.
-                10 * 365 * 24 * 60 * 60 * 1000
+            // 1 Year.
+            1 * 365 * 24 * 60 * 60 * 1000 :
+            // 10 Years.
+            10 * 365 * 24 * 60 * 60 * 1000
         const nBack = new Date(
             now.getTime() +
-            ( -dataRangeTime ) +
+            (-dataRangeTime) +
             // Load extra data based on averagingFrameLength.
-            ( -2 * maxAveragingFrameLength * 24 * 60 * 60 * 1000 )
+            (-2 * maxAveragingFrameLength * 24 * 60 * 60 * 1000)
         )
         const year = nBack.getUTCFullYear()
         const month = nBack.getUTCMonth() + 1
         const date = nBack.getUTCDate()
         date_from = `${year}-${month >= 10 ? '' : 0}${month}-${date >= 10 ? '' : 0}${date}`
-        console.log('Data from',date_from)
+        console.log('Data from', date_from)
 
         mode = 'history'
         dataRangeQuery = `date_from=${date_from}`
@@ -720,16 +722,16 @@ const searchData = () => {
         dataRangeQuery = `interval=${interval}&range=${range}`
     }
 
-    if ( dataSource.source === 'arction-internal' ) {
+    if (dataSource.source === 'arction-internal') {
         fetch(`https://trading-data-facade.azurewebsites.net/?source=worldtradingdata.com&mode=${mode}&${dataRangeQuery}&symbol=${symbol}&sort=${sort}`)
             .then((response) => response.json())
             .then((data) => {
                 renderOHLCData(`${searchSymbol} ${mode}`, data)
             })
             .catch((reason) => {
-                dataSearchFailed( searchSymbol )
+                dataSearchFailed(searchSymbol)
             })
-    } else if ( dataSource.source === 'worldtradingdata.com' ) {
+    } else if (dataSource.source === 'worldtradingdata.com') {
         // Use worldtradingdata.com API.
         console.log('Requesting worldtradingdata.com for \'' + searchSymbol + '\'')
         /**
@@ -741,17 +743,17 @@ const searchData = () => {
             .then((response) => response.json())
             .then((result) => {
                 // Check for static error message.
-                if ( 'Message' in result ) {
+                if ('Message' in result) {
                     // Assume error message.
-                    dataSearchFailed( searchSymbol )
+                    dataSearchFailed(searchSymbol)
                 } else {
                     console.log('Received data from worldtradingdata.com')
-                    const data = result[ mode ]
+                    const data = result[mode]
                     renderOHLCData(`${searchSymbol} ${mode}`, data)
                 }
             })
             .catch((reason) => {
-                dataSearchFailed( searchSymbol )
+                dataSearchFailed(searchSymbol)
             })
     }
     else
@@ -759,27 +761,27 @@ const searchData = () => {
 }
 
 // Subscribe to events where data-search is activated.
-domElements.get( domElementIDs.dataSearchActivate )
+domElements.get(domElementIDs.dataSearchActivate)
     .addEventListener('click', searchData)
 
 document
     .addEventListener('keydown', (event) => {
         const key = event.key
-        if ( key === 'Enter' )
+        if (key === 'Enter')
             searchData()
     })
 
-// Active data-search whenever data-search range is changed, and previous data was visible.
-;[
-    domElements.get( domElementIDs.dataSearchRange1 ),
-    domElements.get( domElementIDs.dataSearchRange2 ),
-    domElements.get( domElementIDs.dataSearchRange3 )
-].forEach(( element ) => element.addEventListener('change', () => {
-    // Update data only if it was already rendered.
-    if ( dataExists ) {
-        searchData()
-    }
-}))
+    // Active data-search whenever data-search range is changed, and previous data was visible.
+    ;[
+        domElements.get(domElementIDs.dataSearchRange1),
+        domElements.get(domElementIDs.dataSearchRange2),
+        domElements.get(domElementIDs.dataSearchRange3)
+    ].forEach((element) => element.addEventListener('change', () => {
+        // Update data only if it was already rendered.
+        if (dataExists) {
+            searchData()
+        }
+    }))
 
 //#endregion
 
@@ -811,37 +813,37 @@ enum AppColor {
     AutoCursorStroke
 }
 const colors = new Map<AppColor, Color>()
-colors.set( AppColor.BackgroundPanel, ColorRGBA( 32, 32, 32 ) )
-colors.set( AppColor.BackgroundChart, ColorRGBA( 24, 24, 24 ) )
-colors.set( AppColor.Titles, ColorRGBA( 235, 190, 0 ) )
-colors.set( AppColor.Axes, ColorRGBA( 150, 150, 150 ) )
-colors.set( AppColor.Nibs, ColorRGBA( 180, 180, 180 ) )
-colors.set( AppColor.Labels, ColorRGBA( 235, 190, 0 ) )
-colors.set( AppColor.Ticks, colors.get( AppColor.Labels ) )
-colors.set( AppColor.CandlePositive, ColorRGBA( 28, 231, 69 ) )
-colors.set( AppColor.CandleNegative, ColorRGBA( 219, 40, 68 ) )
-colors.set( AppColor.SMA, ColorRGBA( 254, 204, 0 ) )
-colors.set( AppColor.EMA, ColorRGBA( 255, 255, 255 ) )
-colors.set( AppColor.VolumeFill, ColorRGBA( 254, 204, 0 ) )
-colors.set( AppColor.VolumeStroke, ColorRGBA( 0, 0, 0, 0 ) )
-colors.set( AppColor.BollingerFill, ColorRGBA( 255, 255, 255, 13 ) )
-colors.set( AppColor.BollingerStroke, ColorRGBA( 66, 66, 66 ) )
-colors.set( AppColor.LineRSI, ColorRGBA( 255, 255, 255 ) )
-colors.set( AppColor.HighRSI, ColorRGBA( 219, 40, 68 ) )
-colors.set( AppColor.LowRSI, ColorRGBA( 28, 231, 69 ) )
-colors.set( AppColor.AutoCursorFill, colors.get( AppColor.BackgroundChart ) )
-colors.set( AppColor.AutoCursorStroke, colors.get( AppColor.Ticks ) )
+colors.set(AppColor.BackgroundPanel, ColorRGBA(32, 32, 32))
+colors.set(AppColor.BackgroundChart, ColorRGBA(24, 24, 24))
+colors.set(AppColor.Titles, ColorRGBA(235, 190, 0))
+colors.set(AppColor.Axes, ColorRGBA(150, 150, 150))
+colors.set(AppColor.Nibs, ColorRGBA(180, 180, 180))
+colors.set(AppColor.Labels, ColorRGBA(235, 190, 0))
+colors.set(AppColor.Ticks, colors.get(AppColor.Labels))
+colors.set(AppColor.CandlePositive, ColorRGBA(28, 231, 69))
+colors.set(AppColor.CandleNegative, ColorRGBA(219, 40, 68))
+colors.set(AppColor.SMA, ColorRGBA(254, 204, 0))
+colors.set(AppColor.EMA, ColorRGBA(255, 255, 255))
+colors.set(AppColor.VolumeFill, ColorRGBA(254, 204, 0))
+colors.set(AppColor.VolumeStroke, ColorRGBA(0, 0, 0, 0))
+colors.set(AppColor.BollingerFill, ColorRGBA(255, 255, 255, 13))
+colors.set(AppColor.BollingerStroke, ColorRGBA(66, 66, 66))
+colors.set(AppColor.LineRSI, ColorRGBA(255, 255, 255))
+colors.set(AppColor.HighRSI, ColorRGBA(219, 40, 68))
+colors.set(AppColor.LowRSI, ColorRGBA(28, 231, 69))
+colors.set(AppColor.AutoCursorFill, colors.get(AppColor.BackgroundChart))
+colors.set(AppColor.AutoCursorStroke, colors.get(AppColor.Ticks))
 
 const solidFills = new Map<AppColor, SolidFill>()
-colors.forEach((color, key) => solidFills.set( key, new SolidFill({ color }) ))
+colors.forEach((color, key) => solidFills.set(key, new SolidFill({ color })))
 
 enum AppLineThickness { Thin, Thick }
 const solidLines = new Map<AppColor, Map<AppLineThickness, SolidLine>>()
 colors.forEach((_, key) => {
     const thicknessMap = new Map()
-    thicknessMap.set( AppLineThickness.Thin, new SolidLine({ thickness: 2, fillStyle: solidFills.get( key ) }) )
-    thicknessMap.set( AppLineThickness.Thick, new SolidLine({ thickness: 4, fillStyle: solidFills.get( key ) }) )
-    solidLines.set( key, thicknessMap )
+    thicknessMap.set(AppLineThickness.Thin, new SolidLine({ thickness: 2, fillStyle: solidFills.get(key) }))
+    thicknessMap.set(AppLineThickness.Thick, new SolidLine({ thickness: 4, fillStyle: solidFills.get(key) }))
+    solidLines.set(key, thicknessMap)
 })
 
 const fontSize = 12
@@ -851,272 +853,272 @@ const fontSize = 12
 // TODO: No API for styling Dashboard splitter color?
 
 //#region ----- Style Charts -----
-for ( let i = 0; i < charts.length; i ++ ) {
+for (let i = 0; i < charts.length; i++) {
     const chart = charts[i]
-    if ( chart ) {
+    if (chart) {
         chart
             // No default titles.
-            .setTitleFillStyle( emptyFill )
-            .setTitleMarginTop( 0 )
-            .setTitleMarginBottom( 0 )
+            .setTitleFillStyle(emptyFill)
+            .setTitleMarginTop(0)
+            .setTitleMarginBottom(0)
             .setPadding({ top: 8, bottom: 8, left: 0 })
             // Color scheme.
-            .setBackgroundFillStyle( solidFills.get( AppColor.BackgroundPanel ) )
-            .setChartBackgroundFillStyle( solidFills.get( AppColor.BackgroundChart ) )
+            .setBackgroundFillStyle(solidFills.get(AppColor.BackgroundPanel))
+            .setChartBackgroundFillStyle(solidFills.get(AppColor.BackgroundChart))
     }
 }
 // Add top padding to very first Chart, so nothing is hidden by data-search input.
 charts[0].setPadding({ top: 20 })
 // Remove bottom padding of very last Chart, to save space.
-charts[ charts.reduce((iMax, chart, i) => chart && i > iMax ? i : iMax, 0) ].setPadding({ bottom: 0 })
+charts[charts.reduce((iMax, chart, i) => chart && i > iMax ? i : iMax, 0)].setPadding({ bottom: 0 })
 
-for ( const title of chartTitles )
-    if ( title )
+for (const title of chartTitles)
+    if (title)
         title
-            .setTextFillStyle( solidFills.get( AppColor.Titles ) )
-            .setFont(( font ) => font
-                .setSize( fontSize )
-                .setWeight( 'bold' )
+            .setTextFillStyle(solidFills.get(AppColor.Titles))
+            .setFont((font) => font
+                .setSize(fontSize)
+                .setWeight('bold')
             )
 
 // Push all charts left sides equal distance away from left border.
 // TODO: Is there any way to do this without adding invisible custom ticks?
-for ( const chart of charts )
-    if ( chart )
+for (const chart of charts)
+    if (chart)
         chart.getDefaultAxisY().addCustomTick()
-            .setMarker(( marker ) => marker
-                .setPointerLength( 0 )
-                .setTextFillStyle( emptyFill )
+            .setMarker((marker) => marker
+                .setPointerLength(0)
+                .setTextFillStyle(emptyFill)
                 // Padding is used to control distance.
                 .setPadding({ left: 50 })
             )
-            .setGridStrokeLength( 0 )
+            .setGridStrokeLength(0)
 //#endregion
 
 //#region ----- Style Axes -----
-for ( let i = 0; i < charts.length; i ++ ) {
+for (let i = 0; i < charts.length; i++) {
     const chart = charts[i]
-    if ( chart !== undefined ) {
+    if (chart !== undefined) {
         const axisX = chart.getDefaultAxisX()
         const axisY = chart.getDefaultAxisY()
-        const axes = [ axisX, axisY ]
+        const axes = [axisX, axisY]
         const isChartWithMasterAxis = axisX === masterAxis
 
-        for ( const axis of axes ) { 
+        for (const axis of axes) {
             axis
-                .setAnimationScroll( undefined )
-                .setAnimationZoom( undefined )
+                .setAnimationScroll(undefined)
+                .setAnimationZoom(undefined)
 
             const tickStyle = axis.getTickStyle()
-            if ( tickStyle !== emptyTick )
+            if (tickStyle !== emptyTick)
                 axis
                     .setTickStyle((tickStyle: VisibleTicks) => tickStyle
-                        .setLabelFillStyle( solidFills.get( AppColor.Labels ) )
-                        .setLabelFont(( font ) => font
-                            .setSize( fontSize )
+                        .setLabelFillStyle(solidFills.get(AppColor.Labels))
+                        .setLabelFont((font) => font
+                            .setSize(fontSize)
                         )
-                        .setTickStyle( solidLines.get( AppColor.Ticks ).get( AppLineThickness.Thin ) )
+                        .setTickStyle(solidLines.get(AppColor.Ticks).get(AppLineThickness.Thin))
                     )
             axis
-                .setStrokeStyle( solidLines.get( AppColor.Axes ).get( AppLineThickness.Thick ) )
-                .setNibStyle( solidLines.get( AppColor.Nibs ).get( AppLineThickness.Thick ) )
+                .setStrokeStyle(solidLines.get(AppColor.Axes).get(AppLineThickness.Thick))
+                .setNibStyle(solidLines.get(AppColor.Nibs).get(AppLineThickness.Thick))
         }
         axisX
             .setTickStyle(emptyTick)
 
-        if ( ! isChartWithMasterAxis ) {
+        if (!isChartWithMasterAxis) {
             // This Charts X Axis is configured to scroll according to the master Axis.
             axisX
                 // Disable scrolling.
-                .setScrollStrategy( undefined )
+                .setScrollStrategy(undefined)
                 // Disable mouse interactions on hidden Axes.
-                .setMouseInteractions( false )
-                .setStrokeStyle( emptyLine )
-                .setNibStyle( emptyLine )
+                .setMouseInteractions(false)
+                .setStrokeStyle(emptyLine)
+                .setNibStyle(emptyLine)
         }
     }
 }
-for ( const tick of ticksRSI )
+for (const tick of ticksRSI)
     tick
-        .setMarker(( marker ) => marker
-            .setTextFillStyle( solidFills.get( AppColor.Ticks ) )
-            .setFont(( font ) => font
-                .setSize( fontSize )
+        .setMarker((marker) => marker
+            .setTextFillStyle(solidFills.get(AppColor.Ticks))
+            .setFont((font) => font
+                .setSize(fontSize)
             )
         )
 // Style CustomTicks created when rendering.
-tickWithoutBackgroundBuilder = tickWithoutBackgroundBuilder.addStyler(( tick ) => tick
-    .setTextFillStyle( solidFills.get( AppColor.Labels ) )
-    .setFont(( font ) => font
-        .setSize( fontSize )
+tickWithoutBackgroundBuilder = tickWithoutBackgroundBuilder.addStyler((tick) => tick
+    .setTextFillStyle(solidFills.get(AppColor.Labels))
+    .setFont((font) => font
+        .setSize(fontSize)
     )
 )
 //#endregion
 
 //#region ----- Style Series -----
-if ( seriesOHLC )
+if (seriesOHLC)
     seriesOHLC
         .setPositiveStyle((candlestick) => candlestick
-            .setBodyFillStyle( solidFills.get( AppColor.CandlePositive ) )
-            .setStrokeStyle( solidLines.get( AppColor.CandlePositive ).get( AppLineThickness.Thin ) )
+            .setBodyFillStyle(solidFills.get(AppColor.CandlePositive))
+            .setStrokeStyle(solidLines.get(AppColor.CandlePositive).get(AppLineThickness.Thin))
         )
         .setNegativeStyle((candlestick) => candlestick
-            .setBodyFillStyle( solidFills.get( AppColor.CandleNegative ) )
-            .setStrokeStyle( solidLines.get( AppColor.CandleNegative ).get( AppLineThickness.Thin ) )
+            .setBodyFillStyle(solidFills.get(AppColor.CandleNegative))
+            .setStrokeStyle(solidLines.get(AppColor.CandleNegative).get(AppLineThickness.Thin))
         )
-        .setFigureWidth( 5 )
-        .setMouseInteractions( false )
+        .setFigureWidth(5)
+        .setMouseInteractions(false)
 
-if ( seriesSMA )
+if (seriesSMA)
     seriesSMA
-        .setStrokeStyle( solidLines.get( AppColor.SMA ).get( AppLineThickness.Thin ) )
-        .setMouseInteractions( false )
-if ( seriesEMA )
+        .setStrokeStyle(solidLines.get(AppColor.SMA).get(AppLineThickness.Thin))
+        .setMouseInteractions(false)
+if (seriesEMA)
     seriesEMA
-        .setStrokeStyle( solidLines.get( AppColor.EMA ).get( AppLineThickness.Thin ) )
-        .setMouseInteractions( false )
-if ( seriesBollinger )
+        .setStrokeStyle(solidLines.get(AppColor.EMA).get(AppLineThickness.Thin))
+        .setMouseInteractions(false)
+if (seriesBollinger)
     seriesBollinger
-        .setHighFillStyle( solidFills.get( AppColor.BollingerFill ) )
-        .setLowFillStyle( solidFills.get( AppColor.BollingerFill ) )
-        .setHighStrokeStyle( solidLines.get( AppColor.BollingerStroke ).get( AppLineThickness.Thin ) )
-        .setLowStrokeStyle( solidLines.get( AppColor.BollingerStroke ).get( AppLineThickness.Thin ) )
-        .setMouseInteractions( false )
-if ( seriesVolume )
+        .setHighFillStyle(solidFills.get(AppColor.BollingerFill))
+        .setLowFillStyle(solidFills.get(AppColor.BollingerFill))
+        .setHighStrokeStyle(solidLines.get(AppColor.BollingerStroke).get(AppLineThickness.Thin))
+        .setLowStrokeStyle(solidLines.get(AppColor.BollingerStroke).get(AppLineThickness.Thin))
+        .setMouseInteractions(false)
+if (seriesVolume)
     seriesVolume
-        .setFillStyle( solidFills.get( AppColor.VolumeFill ) )
-        .setStrokeStyle( solidLines.get( AppColor.VolumeStroke ).get( AppLineThickness.Thin ) )
-        .setMouseInteractions( false )
-if ( seriesRSI )
+        .setFillStyle(solidFills.get(AppColor.VolumeFill))
+        .setStrokeStyle(solidLines.get(AppColor.VolumeStroke).get(AppLineThickness.Thin))
+        .setMouseInteractions(false)
+if (seriesRSI)
     seriesRSI
-        .setStrokeStyle( solidLines.get( AppColor.LineRSI ).get( AppLineThickness.Thin ) )
-        .setMouseInteractions( false )
+        .setStrokeStyle(solidLines.get(AppColor.LineRSI).get(AppLineThickness.Thin))
+        .setMouseInteractions(false)
 
 // Style RSI ticks.
-if ( tickRSIThresholdLow )
+if (tickRSIThresholdLow)
     tickRSIThresholdLow
-        .setGridStrokeStyle( solidLines.get( AppColor.LowRSI ).get( AppLineThickness.Thin ) )
+        .setGridStrokeStyle(solidLines.get(AppColor.LowRSI).get(AppLineThickness.Thin))
 
-if ( tickRSIThresholdHigh )
-tickRSIThresholdHigh
-        .setGridStrokeStyle( solidLines.get( AppColor.HighRSI ).get( AppLineThickness.Thin ) )
+if (tickRSIThresholdHigh)
+    tickRSIThresholdHigh
+        .setGridStrokeStyle(solidLines.get(AppColor.HighRSI).get(AppLineThickness.Thin))
 //#endregion
 
 //#region ----- Style ResultTables -----
 
-const resultTableFormatter = (( tableContentBuilder, series, x, y ) => tableContentBuilder
-    .addRow( dateTimeFormatter.format( getDateFromIndex( Math.round( x ) ) ) )
-    .addRow( series.getName(), '', series.axisY.formatValue( y ) )
+const resultTableFormatter = ((tableContentBuilder, series, x, y) => tableContentBuilder
+    .addRow(dateTimeFormatter.format(getDateFromIndex(Math.round(x))))
+    .addRow(series.getName(), '', series.axisY.formatValue(y))
 ) as RangeSeriesFormatter & SeriesXYFormatter
-if ( seriesSMA )
-    seriesSMA.setResultTableFormatter( resultTableFormatter )
-if ( seriesEMA )
-    seriesEMA.setResultTableFormatter( resultTableFormatter )
-if ( seriesVolume )
-    seriesVolume.setResultTableFormatter( resultTableFormatter )
-if ( seriesRSI )
-    seriesRSI.setResultTableFormatter( resultTableFormatter )
-if ( seriesOHLC )
-    seriesOHLC.setResultTableFormatter(( tableContentBuilder, series, ohlcSegment ) => tableContentBuilder
-        .addRow( series.getName() )
-        .addRow( series.axisX.formatValue( ohlcSegment.getPosition() ) )
-        .addRow( 'Open', '', series.axisY.formatValue( ohlcSegment.getOpen() ) )
-        .addRow( 'High', '', series.axisY.formatValue( ohlcSegment.getHigh() ) )
-        .addRow( 'Low', '', series.axisY.formatValue( ohlcSegment.getLow() ) )
-        .addRow( 'Close', '', series.axisY.formatValue( ohlcSegment.getClose() ) )
+if (seriesSMA)
+    seriesSMA.setResultTableFormatter(resultTableFormatter)
+if (seriesEMA)
+    seriesEMA.setResultTableFormatter(resultTableFormatter)
+if (seriesVolume)
+    seriesVolume.setResultTableFormatter(resultTableFormatter)
+if (seriesRSI)
+    seriesRSI.setResultTableFormatter(resultTableFormatter)
+if (seriesOHLC)
+    seriesOHLC.setResultTableFormatter((tableContentBuilder, series, ohlcSegment) => tableContentBuilder
+        .addRow(series.getName())
+        .addRow(series.axisX.formatValue(ohlcSegment.getPosition()))
+        .addRow('Open', '', series.axisY.formatValue(ohlcSegment.getOpen()))
+        .addRow('High', '', series.axisY.formatValue(ohlcSegment.getHigh()))
+        .addRow('Low', '', series.axisY.formatValue(ohlcSegment.getLow()))
+        .addRow('Close', '', series.axisY.formatValue(ohlcSegment.getClose()))
     )
 
 // Enable AutoCursor auto coloring based on picked series.
-const enableAutoCursorAutoColoring = ( autoCursor: AutoCursorXY ) => autoCursor
-    .setResultTableAutoTextStyle( true )
-    .setTickMarkerXAutoTextStyle( true )
-    .setTickMarkerYAutoTextStyle( true )
+const enableAutoCursorAutoColoring = (autoCursor: AutoCursorXY) => autoCursor
+    .setResultTableAutoTextStyle(true)
+    .setTickMarkerXAutoTextStyle(true)
+    .setTickMarkerYAutoTextStyle(true)
 // Style AutoCursors.
-const styleAutoCursor = ( autoCursor: AutoCursorXY ) => autoCursor
-    .setTickMarkerX(( tickMarker ) => tickMarker
-        .setBackground(( background ) => background
-            .setFillStyle( solidFills.get( AppColor.AutoCursorFill ) )
-            .setStrokeStyle( solidLines.get( AppColor.AutoCursorStroke ).get( AppLineThickness.Thin ) )
+const styleAutoCursor = (autoCursor: AutoCursorXY) => autoCursor
+    .setTickMarkerX((tickMarker) => tickMarker
+        .setBackground((background) => background
+            .setFillStyle(solidFills.get(AppColor.AutoCursorFill))
+            .setStrokeStyle(solidLines.get(AppColor.AutoCursorStroke).get(AppLineThickness.Thin))
         )
     )
-    .setTickMarkerY(( tickMarker ) => tickMarker
-        .setBackground(( background ) => background
-            .setFillStyle( solidFills.get( AppColor.AutoCursorFill ) )
-            .setStrokeStyle( solidLines.get( AppColor.AutoCursorStroke ).get( AppLineThickness.Thin ) )
+    .setTickMarkerY((tickMarker) => tickMarker
+        .setBackground((background) => background
+            .setFillStyle(solidFills.get(AppColor.AutoCursorFill))
+            .setStrokeStyle(solidLines.get(AppColor.AutoCursorStroke).get(AppLineThickness.Thin))
         )
 
     )
-    .setResultTable(( resultTable ) => resultTable
-        .setBackground(( background ) => background
-            .setFillStyle( solidFills.get( AppColor.AutoCursorFill ) )
-            .setStrokeStyle( solidLines.get( AppColor.AutoCursorStroke ).get( AppLineThickness.Thin ) )
+    .setResultTable((resultTable) => resultTable
+        .setBackground((background) => background
+            .setFillStyle(solidFills.get(AppColor.AutoCursorFill))
+            .setStrokeStyle(solidLines.get(AppColor.AutoCursorStroke).get(AppLineThickness.Thin))
         )
     )
 
-if ( chartOHLC )
+if (chartOHLC)
     chartOHLC
-        .setAutoCursor( enableAutoCursorAutoColoring )
-        .setAutoCursor( styleAutoCursor )
-if ( chartVolume )
+        .setAutoCursor(enableAutoCursorAutoColoring)
+        .setAutoCursor(styleAutoCursor)
+if (chartVolume)
     chartVolume
-        .setAutoCursor( enableAutoCursorAutoColoring )
-        .setAutoCursor( styleAutoCursor )
-if ( chartRSI )
+        .setAutoCursor(enableAutoCursorAutoColoring)
+        .setAutoCursor(styleAutoCursor)
+if (chartRSI)
     chartRSI
-        .setAutoCursor( enableAutoCursorAutoColoring )
-        .setAutoCursor( styleAutoCursor )
+        .setAutoCursor(enableAutoCursorAutoColoring)
+        .setAutoCursor(styleAutoCursor)
 
-if ( seriesBollinger )
+if (seriesBollinger)
     // No Cursor picking for Bollinger Bands.
     seriesBollinger
-        .setCursorEnabled( false )
+        .setCursorEnabled(false)
 //#endregion
 
 //#region ----- Add Vertical Gridlines that follow currently active AutoCursor around -----
 const tickWithoutLabelBuilder = tickWithoutBackgroundBuilder
-    .addStyler(( label ) => label
-        .setTextFillStyle( emptyFill )
+    .addStyler((label) => label
+        .setTextFillStyle(emptyFill)
     )
-const verticalCursorGrids = charts.map(( chart ) => chart ?
-    chart.getDefaultAxisX().addCustomTick( tickWithoutLabelBuilder ).dispose() :
+const verticalCursorGrids = charts.map((chart) => chart ?
+    chart.getDefaultAxisX().addCustomTick(tickWithoutLabelBuilder).dispose() :
     undefined
 )
 // Update gridlines when mouse is moved.
 const updateVerticalCursorGrids = () => {
     // Find Chart with active AutoCursor if any.
-    const activeAutoCursorChart = charts.reduce(( cursor, chart ) =>
-        cursor ? cursor : ( chart ? ( chart.getAutoCursor().isDisposed() ? undefined : chart ) : undefined ),
+    const activeAutoCursorChart = charts.reduce((cursor, chart) =>
+        cursor ? cursor : (chart ? (chart.getAutoCursor().isDisposed() ? undefined : chart) : undefined),
         undefined
     )
     // Enable vertical cursor grids from Charts OTHER than the one with active AutoCursor.
-    for ( let i = 0; i < verticalCursorGrids.length; i ++ ) {
-        const grid = verticalCursorGrids[ i ]
-        if ( grid ) {
+    for (let i = 0; i < verticalCursorGrids.length; i++) {
+        const grid = verticalCursorGrids[i]
+        if (grid) {
             let hideGrid: boolean = true
-            if ( activeAutoCursorChart ) {
-                const chart = charts[ i ]
-                if ( chart === activeAutoCursorChart ) {
+            if (activeAutoCursorChart) {
+                const chart = charts[i]
+                if (chart === activeAutoCursorChart) {
                     // This is the Chart with active AutoCursor. We should hide the grid.
                     hideGrid = true
                 } else {
                     // This is not the Chart with active AutoCursor. We should enable the grid, and move its X location to same position as Cursor.
                     hideGrid = false
                     const cursor = activeAutoCursorChart.getAutoCursor()
-                    grid.setValue( translatePoint( cursor.getPosition(), (<any>cursor).scale, grid.scale ).x )
+                    grid.setValue(translatePoint(cursor.getPosition(), (<any>cursor).scale, grid.scale).x)
                 }
-            } 
-            if ( hideGrid === true )
+            }
+            if (hideGrid === true)
                 grid.dispose()
             else
                 grid.restore()
         }
     }
 }
-document.addEventListener( 'mousemove', () => {
+document.addEventListener('mousemove', () => {
     // LCJS updated AutoCursor location on next animation frame, so we must do the same to be in sync.
     // Note that this is a temporary implementation until AutoCursor events are added to LCJS.
     requestAnimationFrame(updateVerticalCursorGrids)
-} )
+})
 
 //#endregion
 
@@ -1125,4 +1127,4 @@ document.addEventListener( 'mousemove', () => {
 // Render static data initially (1 year history of AAPL, taken on 26th September 2019).
 // This is a temporary solution for while the API token is limited to an amount of searches.
 const temporaryStaticData = require('./temporary-static-data.json')
-renderOHLCData( 'AAPL history', temporaryStaticData )
+renderOHLCData('AAPL history', temporaryStaticData)

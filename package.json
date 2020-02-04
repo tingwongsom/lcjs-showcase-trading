@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@arction/lcjs": "^1.2.2",
-    "@arction/lcjs-analysis": "^1.0.4"
+    "@arction/lcjs-analysis": "^1.0.4",
+    "whatwg-fetch": "^3.0.0"
   }
 }
