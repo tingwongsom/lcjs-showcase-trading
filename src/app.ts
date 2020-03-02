@@ -1007,7 +1007,6 @@ if (tickRSIThresholdHigh)
 //#region ----- Style ResultTables -----
 
 const resultTableFormatter = ((tableContentBuilder, series, x, y) => tableContentBuilder
-    .addRow(dateTimeFormatter.format(getDateFromIndex(Math.round(x))))
     .addRow(series.getName(), '', series.axisY.formatValue(y))
 ) as RangeSeriesFormatter & SeriesXYFormatter
 if (seriesSMA)
@@ -1021,7 +1020,6 @@ if (seriesRSI)
 if (seriesOHLC)
     seriesOHLC.setResultTableFormatter((tableContentBuilder, series, ohlcSegment) => tableContentBuilder
         .addRow(series.getName())
-        .addRow(series.axisX.formatValue(ohlcSegment.getPosition()))
         .addRow('Open', '', series.axisY.formatValue(ohlcSegment.getOpen()))
         .addRow('High', '', series.axisY.formatValue(ohlcSegment.getHigh()))
         .addRow('Low', '', series.axisY.formatValue(ohlcSegment.getLow()))
