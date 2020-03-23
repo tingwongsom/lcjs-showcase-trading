@@ -15,7 +15,7 @@ let dataSource: {
     apiToken: string
 }
 dataSource = { source: 'arction-internal' }
-dataSource = { source: 'worldtradingdata.com', apiToken: 'cSMESEaFSyfx3m9qdna5lXYEdYlnzadFOIlIAMEE7OihsT5b1bquQdTcZWus' }
+// dataSource = { source: 'worldtradingdata.com', apiToken: 'my-api-token' }
 
 
 // To disable/enable/modify charts inside application, alter values below:
