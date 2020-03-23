@@ -723,7 +723,9 @@ const searchData = () => {
     }
 
     if (dataSource.source === 'arction-internal') {
-        fetch(`https://trading-data-facade.azurewebsites.net/?source=worldtradingdata.com&mode=${mode}&${dataRangeQuery}&symbol=${symbol}&sort=${sort}`)
+        fetch(`https://trading-data-facade.azurewebsites.net/?source=worldtradingdata.com&mode=${mode}&${dataRangeQuery}&symbol=${symbol}&sort=${sort}`, {
+            mode: 'cors'
+        })
             .then((response) => response.json())
             .then((data) => {
                 renderOHLCData(`${searchSymbol} ${mode}`, data)
