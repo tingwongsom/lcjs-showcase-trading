@@ -2,6 +2,9 @@
 import 'whatwg-fetch'
 import { lightningChart, emptyFill, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, Axis, VisibleTicks, emptyLine, transparentFill, emptyTick, transparentLine, AreaSeries, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds } from "@arction/lcjs"
 import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relativeStrengthIndex } from '@arction/lcjs-analysis'
+import { worldTradingData } from './dataSources/worldtradingdata'
+import { arctionInternalWorldTradingData, arctionInternalAlphaVantage } from './dataSources/arctionInternal'
+import { alphaVantage } from './dataSources/alphaVantage'
 
 //#region ----- Application configuration -----
 
@@ -9,12 +12,20 @@ import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relative
 // To run application locally, you'll need to set 'dataSource' with source: 'worldtradingdata.com', and a valid API token.
 // You can get one for free from https://www.worldtradingdata.com/register
 let dataSource: {
-    source: 'arction-internal'
+    source: 'arction-internal-world-trading-data'
 } | {
     source: 'worldtradingdata.com',
     apiToken: string
+} | {
+    source: 'WorldTradingData',
+    apiToken: string
+} | {
+    source: 'arction-internal-alpha-vantage',
+} | {
+    source: 'AlphaVantage',
+    apiToken: string
 }
-dataSource = { source: 'arction-internal' }
+dataSource = { source: 'arction-internal-alpha-vantage' }
 // dataSource = { source: 'worldtradingdata.com', apiToken: 'my-api-token' }
 
 
@@ -722,44 +733,44 @@ const searchData = () => {
         dataRangeQuery = `interval=${interval}&range=${range}`
     }
 
-    if (dataSource.source === 'arction-internal') {
-        fetch(`https://trading-data-facade.azurewebsites.net/?source=worldtradingdata.com&mode=${mode}&${dataRangeQuery}&symbol=${symbol}&sort=${sort}`, {
-            mode: 'cors'
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                renderOHLCData(`${searchSymbol} ${mode}`, data)
-            })
-            .catch((reason) => {
-                dataSearchFailed(searchSymbol)
-            })
-    } else if (dataSource.source === 'worldtradingdata.com') {
-        // Use worldtradingdata.com API.
-        console.log('Requesting worldtradingdata.com for \'' + searchSymbol + '\'')
-        /**
-         * worldtradingdata.com API Token.
-         */
-        const apiToken: 'demo' | string = dataSource.apiToken
-
-        fetch(`https://www.worldtradingdata.com/api/v1/${mode}?${dataRangeQuery}&symbol=${symbol}&sort=${sort}&api_token=${apiToken}`)
-            .then((response) => response.json())
-            .then((result) => {
-                // Check for static error message.
-                if ('Message' in result) {
-                    // Assume error message.
-                    dataSearchFailed(searchSymbol)
-                } else {
-                    console.log('Received data from worldtradingdata.com')
-                    const data = result[mode]
-                    renderOHLCData(`${searchSymbol} ${mode}`, data)
-                }
-            })
-            .catch((reason) => {
-                dataSearchFailed(searchSymbol)
-            })
+    let dataPromise
+    switch (dataSource.source) {
+        case 'arction-internal-world-trading-data':
+            dataPromise = arctionInternalWorldTradingData(mode, dataRangeQuery, symbol, sort)
+            break
+        case 'worldtradingdata.com':
+        case 'WorldTradingData':
+            {
+                /**
+                 * worldtradingdata.com API Token.
+                 */
+                const apiToken: 'demo' | string = dataSource.apiToken
+                dataPromise = worldTradingData(mode, dataRangeQuery, symbol, sort, apiToken)
+            }
+            break
+        case 'arction-internal-alpha-vantage':
+            dataPromise = arctionInternalAlphaVantage(mode, symbol)
+            break
+        case 'AlphaVantage':
+            {
+                /**
+                 * alphavantage.co API Token.
+                 */
+                const apiToken: 'demo' | string = dataSource.apiToken
+                dataPromise = alphaVantage(mode, symbol, apiToken)
+            }
+            break
+        default:
+            throw new Error('Unknown data source.')
     }
-    else
-        throw new Error('Unknown data source.')
+    dataPromise
+        .then((data) => {
+            console.log(data)
+            renderOHLCData(`${searchSymbol} ${mode}`, data)
+        })
+        .catch((reason) => {
+            dataSearchFailed(searchSymbol)
+        })
 }
 
 // Subscribe to events where data-search is activated.
