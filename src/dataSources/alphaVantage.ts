@@ -5,10 +5,10 @@ export const alphaVantage = (
 ) => {
   switch (mode) {
     case 'intraday':
-      return fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&outputsize=full&interval=5min&apikey=${apiToken}`)
+      return fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&outputsize=full&interval=15min&apikey=${apiToken}`)
         .then((response) => response.json())
         .then((data) => {
-          const d = data['Time Series (5min)']
+          const d = data['Time Series (15min)']
           const keys = Object.keys(d)
           for (let i = 0; i < keys.length; i++) {
             d[keys[i]] = {

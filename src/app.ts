@@ -1,32 +1,18 @@
 // polyfill window.fetch for browsers which don't natively support it.
 import 'whatwg-fetch'
-import { lightningChart, emptyFill, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, Axis, VisibleTicks, emptyLine, transparentFill, emptyTick, transparentLine, AreaSeries, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds } from "@arction/lcjs"
+import { lightningChart, emptyFill, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, VisibleTicks, emptyLine, emptyTick, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds } from "@arction/lcjs"
 import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relativeStrengthIndex } from '@arction/lcjs-analysis'
-import { worldTradingData } from './dataSources/worldtradingdata'
-import { arctionInternalWorldTradingData, arctionInternalAlphaVantage } from './dataSources/arctionInternal'
-import { alphaVantage } from './dataSources/alphaVantage'
+import { DataSource } from './dataSources'
+import { DataCache, DataRange, DataSourceInfo, OHLCDataFormat } from './dataCache'
 
 //#region ----- Application configuration -----
 
 // *** Data-source ***
-// To run application locally, you'll need to set 'dataSource' with source: 'worldtradingdata.com', and a valid API token.
-// You can get one for free from https://www.worldtradingdata.com/register
-let dataSource: {
-    source: 'arction-internal-world-trading-data'
-} | {
-    source: 'worldtradingdata.com',
-    apiToken: string
-} | {
-    source: 'WorldTradingData',
-    apiToken: string
-} | {
-    source: 'arction-internal-alpha-vantage',
-} | {
-    source: 'AlphaVantage',
-    apiToken: string
-}
-dataSource = { source: 'arction-internal-alpha-vantage' }
-// dataSource = { source: 'worldtradingdata.com', apiToken: 'my-api-token' }
+// To run application locally, you'll need to set 'dataSource' with source: DataSource.AlphaVantage, and a valid API token.
+// You can get one for free from https://www.alphavantage.co/
+let dataSource: DataSourceInfo
+// dataSource = { source: 'arction-internal-alpha-vantage' }
+dataSource = { source: DataSource.AlphaVantage, apiToken: 'API-KEY-HERE' }
 
 
 // To disable/enable/modify charts inside application, alter values below:
@@ -90,11 +76,10 @@ Object.keys(domElementIDs).forEach((key) => {
     domElements.set(domElementID, domElement)
 })
 
-enum DataRange { Short, Medium, Long }
-let dataRange = DataRange.Medium
-domElements.get(domElementIDs.dataSearchRange1).addEventListener('change', () => dataRange = DataRange.Short)
-domElements.get(domElementIDs.dataSearchRange2).addEventListener('change', () => dataRange = DataRange.Medium)
-domElements.get(domElementIDs.dataSearchRange3).addEventListener('change', () => dataRange = DataRange.Long)
+let dataRange = DataRange.Year
+domElements.get(domElementIDs.dataSearchRange1).addEventListener('change', () => dataRange = DataRange.Month)
+domElements.get(domElementIDs.dataSearchRange2).addEventListener('change', () => dataRange = DataRange.Year)
+domElements.get(domElementIDs.dataSearchRange3).addEventListener('change', () => dataRange = DataRange.TenYears)
 
 //#endregion
 
@@ -422,7 +407,7 @@ type AppDataFormat = { [key: string]: StringOHLCWithVolume }
 
 const dateTimeTicks: CustomTick[] = []
 let dataExists = false
-const renderOHLCData = (name: string, data: AppDataFormat) => {
+const renderOHLCData = (name: string, data: OHLCDataFormat) => {
     dataExists = true
     //#region ----- Prepare data for rendering with LCJS -----
     // Map values to LCJS accepted format, with an additional X value.
@@ -462,7 +447,7 @@ const renderOHLCData = (name: string, data: AppDataFormat) => {
             return undefined
     }
     // Set DateTimeFormatter.
-    dateTimeFormatter = dataRange === DataRange.Short ?
+    dateTimeFormatter = dataRange === DataRange.Month ?
         new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', minute: 'numeric', hour: 'numeric' }) :
         new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'long', year: 'numeric' })
 
@@ -488,7 +473,7 @@ const renderOHLCData = (name: string, data: AppDataFormat) => {
     }
 
     //#region ----- Render data -----
-    const averagingFrameLength = dataRange === DataRange.Short ? 'averagingFrameLengthIntraday' : 'averagingFrameLength'
+    const averagingFrameLength = dataRange === DataRange.Month ? 'averagingFrameLengthIntraday' : 'averagingFrameLength'
 
     //#region OHLC.
     if (seriesOHLC) {
@@ -574,8 +559,8 @@ const renderOHLCData = (name: string, data: AppDataFormat) => {
 
     // Set title of OHLC Chart to show name data.
     if (chartOHLCTitle) {
-        const dataRangeLabel = dataRange === DataRange.Short ?
-            '1 month' : (dataRange === DataRange.Medium ?
+        const dataRangeLabel = dataRange === DataRange.Month ?
+            '1 month' : (dataRange === DataRange.Year ?
                 '1 year' :
                 '10 years'
             )
@@ -591,7 +576,7 @@ const renderOHLCData = (name: string, data: AppDataFormat) => {
     dateTimeTicks.length = 0
 
     // Different Ticks based on data range.
-    if (dataRange === DataRange.Short) {
+    if (dataRange === DataRange.Month) {
         // Each day has its own tick.
         const dayFormatter = new Intl.DateTimeFormat(undefined, { day: '2-digit' })
         let prevDay: number | undefined
@@ -609,7 +594,7 @@ const renderOHLCData = (name: string, data: AppDataFormat) => {
                 prevDay = day
             }
         }
-    } else if (dataRange === DataRange.Medium) {
+    } else if (dataRange === DataRange.Year) {
         // Each month has its own tick.
         const startOfMonthFormatter = new Intl.DateTimeFormat(undefined, { month: 'short' })
         let prevMonth: number | undefined
@@ -627,7 +612,7 @@ const renderOHLCData = (name: string, data: AppDataFormat) => {
                 prevMonth = month
             }
         }
-    } else if (dataRange === DataRange.Long) {
+    } else if (dataRange === DataRange.TenYears) {
         // Each year has its own tick.
         const dayFormatter = new Intl.DateTimeFormat(undefined, { year: 'numeric' })
         let prevYear: number | undefined
@@ -663,10 +648,12 @@ const dataSearchFailed = (searchSymbol: string) => {
     console.log('No data found for \'', searchSymbol, '\'')
     alert(`Data for '${searchSymbol}' not found. May be that:
 1) Search symbol is not valid stock label.
-2) Requested stock data or data-range is not available from worldtradingdata.com.
+2) Requested stock data is not available from data provider.
 3) Data subscription limit has been reached for this day.
 ` )
 }
+
+const dataCaches: Map<string, DataCache> = new Map()
 
 // Define function that searches OHLC data.
 const searchData = () => {
@@ -679,95 +666,35 @@ const searchData = () => {
      * Symbol to search.
      */
     const symbol: string = searchSymbol
-    /**
-     * Sorting basis.
-     */
-    const sort: 'asc' | 'desc' | 'newest' | 'oldest' = 'asc'
-    let dataRangeQuery: string
+    // mode
     let mode: 'history' | 'intraday'
 
-    if (dataRange !== DataRange.Short) {
-        // HISTORY data.
-        /**
-         * Start date of HISTORY data retrieval.
-         *
-         * YYYY-MM-DD
-         */
-        let date_from: string = ''
-
-        const now = new Date()
-        const dataRangeTime = dataRange === DataRange.Medium ?
-            // 1 Year.
-            1 * 365 * 24 * 60 * 60 * 1000 :
-            // 10 Years.
-            10 * 365 * 24 * 60 * 60 * 1000
-        const nBack = new Date(
-            now.getTime() +
-            (-dataRangeTime) +
-            // Load extra data based on averagingFrameLength.
-            (-2 * maxAveragingFrameLength * 24 * 60 * 60 * 1000)
-        )
-        const year = nBack.getUTCFullYear()
-        const month = nBack.getUTCMonth() + 1
-        const date = nBack.getUTCDate()
-        date_from = `${year}-${month >= 10 ? '' : 0}${month}-${date >= 10 ? '' : 0}${date}`
-        console.log('Data from', date_from)
-
-        mode = 'history'
-        dataRangeQuery = `date_from=${date_from}`
-    } else {
-        // INTRADAY data.
-        /**
-         * Number of minutes between data points for INTRADAY data retrieval.
-         */
-        let interval: string = ''
-        /**
-         * Number of days data is returned for INTRADAY data retrieval.
-         */
-        let range: string = ''
-
-        interval = '15'
-        range = '30'
-
-        mode = 'intraday'
-        dataRangeQuery = `interval=${interval}&range=${range}`
-    }
-
-    let dataPromise
-    switch (dataSource.source) {
-        case 'arction-internal-world-trading-data':
-            dataPromise = arctionInternalWorldTradingData(mode, dataRangeQuery, symbol, sort)
+    switch (dataRange) {
+        case DataRange.Month:
+            mode = 'intraday'
             break
-        case 'worldtradingdata.com':
-        case 'WorldTradingData':
-            {
-                /**
-                 * worldtradingdata.com API Token.
-                 */
-                const apiToken: 'demo' | string = dataSource.apiToken
-                dataPromise = worldTradingData(mode, dataRangeQuery, symbol, sort, apiToken)
-            }
-            break
-        case 'arction-internal-alpha-vantage':
-            dataPromise = arctionInternalAlphaVantage(mode, symbol)
-            break
-        case 'AlphaVantage':
-            {
-                /**
-                 * alphavantage.co API Token.
-                 */
-                const apiToken: 'demo' | string = dataSource.apiToken
-                dataPromise = alphaVantage(mode, symbol, apiToken)
-            }
-            break
+        case DataRange.Year:
+        case DataRange.TenYears:
         default:
-            throw new Error('Unknown data source.')
+            mode = 'history'
     }
-    dataPromise
-        .then((data) => {
-            console.log(data)
-            renderOHLCData(`${searchSymbol} ${mode}`, data)
-        })
+
+    let cached = dataCaches.get(symbol)
+
+    if (!cached) {
+        const cache = new DataCache(symbol, dataSource)
+        dataCaches.set(symbol, cache)
+        cached = cache
+    }
+    let dataPromise
+    if (mode === 'history') {
+        dataPromise = cached.getDailyData(dataRange)
+    } else {
+        dataPromise = cached.getIntraDayData()
+    }
+    dataPromise.then((data) => {
+        renderOHLCData(`${searchSymbol} ${mode}`, data)
+    })
         .catch((reason) => {
             dataSearchFailed(searchSymbol)
         })

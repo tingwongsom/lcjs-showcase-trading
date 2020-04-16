@@ -1,16 +1,21 @@
+const WORLD_TRADING_DATA_BASE_URL = `https://trading-data-facade.azurewebsites.net/?source=WorldTradingData`
+
 export const arctionInternalWorldTradingData = (mode: 'history' | 'intraday', dataRangeQuery: string, symbol: string, sort: string) => {
-  return fetch(`https://trading-data-facade.azurewebsites.net/?source=WorldTradingData&mode=${mode}&${dataRangeQuery}&symbol=${symbol}&sort=${sort}`, {
+  return fetch(`${WORLD_TRADING_DATA_BASE_URL}&mode=${mode}&${dataRangeQuery}&symbol=${symbol}&sort=${sort}`, {
     mode: 'cors'
   })
     .then((response) => response.json())
 }
+
+const ALPHA_VANTAGE_BASE_URL = `https://trading-data-facade.azurewebsites.net/?source=AlphaVantage`
+
 export const arctionInternalAlphaVantage = (mode: 'history' | 'intraday', symbol: string) => {
   switch (mode) {
     case 'intraday':
-      return fetch(`https://trading-data-facade.azurewebsites.net/?source=AlphaVantage&function=TIME_SERIES_INTRADAY&symbol=${symbol}&outputsize=full&interval=5min`)
+      return fetch(`${ALPHA_VANTAGE_BASE_URL}&function=TIME_SERIES_INTRADAY&symbol=${symbol}&outputsize=full&interval=15min`)
         .then((response) => response.json())
         .then((data) => {
-          const d = data['Time Series (5min)']
+          const d = data['Time Series (15min)']
           const keys = Object.keys(d)
           for (let i = 0; i < keys.length; i++) {
             d[keys[i]] = {
@@ -24,7 +29,7 @@ export const arctionInternalAlphaVantage = (mode: 'history' | 'intraday', symbol
           return d
         })
     case 'history':
-      return fetch(`https://trading-data-facade.azurewebsites.net/?source=AlphaVantage&function=TIME_SERIES_DAILY&symbol=${symbol}&outputsize=full`)
+      return fetch(`${ALPHA_VANTAGE_BASE_URL}&function=TIME_SERIES_DAILY&symbol=${symbol}&outputsize=full`)
         .then((response) => response.json())
         .then((data) => {
           const d = data['Time Series (Daily)']
