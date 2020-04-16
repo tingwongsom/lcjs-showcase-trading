@@ -12,7 +12,7 @@ const ALPHA_VANTAGE_BASE_URL = `https://trading-data-facade.azurewebsites.net/?s
 export const arctionInternalAlphaVantage = (mode: 'history' | 'intraday', symbol: string) => {
   switch (mode) {
     case 'intraday':
-      return fetch(`${ALPHA_VANTAGE_BASE_URL}&function=TIME_SERIES_INTRADAY&symbol=${symbol}&outputsize=full&interval=15min`)
+      return fetch(`${ALPHA_VANTAGE_BASE_URL}&mode=${mode}&symbol=${symbol}`)
         .then((response) => response.json())
         .then((data) => {
           const d = data['Time Series (15min)']
@@ -29,7 +29,7 @@ export const arctionInternalAlphaVantage = (mode: 'history' | 'intraday', symbol
           return d
         })
     case 'history':
-      return fetch(`${ALPHA_VANTAGE_BASE_URL}&function=TIME_SERIES_DAILY&symbol=${symbol}&outputsize=full`)
+      return fetch(`${ALPHA_VANTAGE_BASE_URL}&mode=${mode}&symbol=${symbol}`)
         .then((response) => response.json())
         .then((data) => {
           const d = data['Time Series (Daily)']

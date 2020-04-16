@@ -11,8 +11,8 @@ import { DataCache, DataRange, DataSourceInfo, OHLCDataFormat } from './dataCach
 // To run application locally, you'll need to set 'dataSource' with source: DataSource.AlphaVantage, and a valid API token.
 // You can get one for free from https://www.alphavantage.co/
 let dataSource: DataSourceInfo
-// dataSource = { source: 'arction-internal-alpha-vantage' }
-dataSource = { source: DataSource.AlphaVantage, apiToken: 'API-KEY-HERE' }
+dataSource = { source: DataSource.AlphaVantageArctionInternal }
+// dataSource = { source: DataSource.AlphaVantage, apiToken: 'API-KEY-HERE' }
 
 
 // To disable/enable/modify charts inside application, alter values below:
