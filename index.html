@@ -1,12 +1,4 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Trading | LightningChart JS Showcase</title>
-    <style>
-        html {
+<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="X-UA-Compatible" content="ie=edge"><title>Trading | LightningChart JS Showcase</title><style>html {
             height: 100%;
         }
         body {
@@ -56,45 +48,9 @@
         }
         .hidden { width: 0px; height: 0px; }
         .grow { transition: all .2s ease-in-out; }
-        .grow:hover { transform: scale(1.2); }
-    </style>
-    <script src="polyfill.min.js"></script>
-  </head>
-  <body>
-    <div
-        id='trading-chart-container'
-    ></div>
-    <div
-        id='trading-data-search-container'
-    >
-        <input
-            type='text'
-            id='trading-data-search-input'
-            placeholder="Data search symbol"
-            value="AAPL"
-        ></input>
-        <button
-            id='trading-data-search-activate'
-        >
-            Search
-        </button>
-        <input id='trading-data-search-range-1' class="radio-button" name='data-range' type='radio'></input>
-        <label>1M</label>
-        <input id='trading-data-search-range-2' class="radio-button" name='data-range' type='radio' checked='checked'></input>
-        <label>1Y</label>
-        <input id='trading-data-search-range-3' class="radio-button" name='data-range' type='radio'></input>
-        <label>10Y</label>
-    </div>
-    <a id="github-link" href="https://github.com/Arction/lcjs-showcase-trading">
-        <img id="github-link-image" class="grow" src="./GitHub-Mark-White-32px.png"/>
-    </a>
-    <script type="text/javascript">
-        // Hide Github link if we think we are inside an iframe.
+        .grow:hover { transform: scale(1.2); }</style><script src="polyfill.min.js"></script></head><body><div id="trading-chart-container"></div><div id="trading-data-search-container"><input id="trading-data-search-input" placeholder="Data search symbol" value="AAPL"><button id="trading-data-search-activate">Search</button> <input id="trading-data-search-range-1" class="radio-button" name="data-range" type="radio"><label>1M</label> <input id="trading-data-search-range-2" class="radio-button" name="data-range" type="radio" checked="checked"><label>1Y</label> <input id="trading-data-search-range-3" class="radio-button" name="data-range" type="radio"><label>10Y</label></div><a id="github-link" href="https://github.com/Arction/lcjs-showcase-trading"><img id="github-link-image" class="grow" src="./GitHub-Mark-White-32px.png"/></a><script>// Hide Github link if we think we are inside an iframe.
         if ( window !== window.top ) {
             // Inside iframe.
             const githubLinkImage = document.getElementById( 'github-link-image' )
             githubLinkImage.className += ' hidden'
-        }
-    </script>
-  <script type="text/javascript" src="vendors~main.bundle.js"></script><script type="text/javascript" src="main.bundle.js"></script></body>
-</html>
+        }</script><script src="vendors~main.bundle.js"></script><script src="main.bundle.js"></script></body></html>
