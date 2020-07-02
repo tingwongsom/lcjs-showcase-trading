@@ -1,9 +1,15 @@
 // polyfill window.fetch for browsers which don't natively support it.
 import 'whatwg-fetch'
-import { lightningChart, emptyFill, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, VisibleTicks, emptyLine, emptyTick, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds } from "@arction/lcjs"
+import { lightningChart, emptyFill, Themes, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, VisibleTicks, emptyLine, emptyTick, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds } from "@arction/lcjs"
 import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relativeStrengthIndex } from '@arction/lcjs-analysis'
 import { DataSource } from './dataSources'
 import { DataCache, DataRange, DataSourceInfo, OHLCDataFormat } from './dataCache'
+
+// Use theme if provided
+const urlParams = new URLSearchParams(window.location.search);
+let theme = Themes.dark
+if (urlParams.get('theme') == 'light')
+    theme = Themes.light
 
 //#region ----- Application configuration -----
 
@@ -97,6 +103,7 @@ const countRowSpanForChart = (chartIndex: number) => chartConfigs.reduce(
 
 // Create Dashboard inside chart container div. 
 const dashboard = lightningChart().Dashboard({
+    theme,
     containerId: domElementIDs.chartContainer,
     numberOfColumns: 1,
     // Count row span for all charts.
@@ -158,7 +165,7 @@ if (chartConfigOHLC.show) {
         .setDraggingMode(UIDraggingModes.notDraggable)
         // Set dark, tinted Background style.
         .setBackground((background) => background
-            .setFillStyle(new SolidFill({ color: ColorHEX('#000').setA(150) }))
+            .setFillStyle(new SolidFill({ color: theme.chartBackgroundFillStyle.get('color').setA(150) }))
             .setStrokeStyle(emptyLine)
         )
     chartOHLCTitle = _chartOHLCTitle
@@ -247,7 +254,7 @@ if (chartConfigVolume.show) {
         .setDraggingMode(UIDraggingModes.notDraggable)
         // Set dark, tinted Background style.
         .setBackground((background) => background
-            .setFillStyle(new SolidFill({ color: ColorHEX('#000').setA(150) }))
+            .setFillStyle(new SolidFill({ color: theme.chartBackgroundFillStyle.get('color').setA(150) }))
             .setStrokeStyle(emptyLine)
         )
     chartVolumeTitle = _chartVolumeTitle
@@ -303,7 +310,7 @@ if (chartConfigRSI.show) {
         .setDraggingMode(UIDraggingModes.notDraggable)
         // Set dark, tinted Background style.
         .setBackground((background) => background
-            .setFillStyle(new SolidFill({ color: ColorHEX('#000').setA(150) }))
+            .setFillStyle(new SolidFill({ color: theme.chartBackgroundFillStyle.get('color').setA(150) }))
             .setStrokeStyle(emptyLine)
         );
     chartRSITitle = _chartRSITitle
@@ -753,27 +760,43 @@ enum AppColor {
     AutoCursorStroke
 }
 const colors = new Map<AppColor, Color>()
-colors.set(AppColor.BackgroundPanel, ColorRGBA(32, 32, 32))
-colors.set(AppColor.BackgroundChart, ColorRGBA(24, 24, 24))
-colors.set(AppColor.Titles, ColorRGBA(235, 190, 0))
+
+if (theme == Themes.light){
+    colors.set(AppColor.BackgroundPanel, ColorRGBA(255, 255, 255))
+    colors.set(AppColor.BackgroundChart, ColorRGBA(252, 252, 252))
+    colors.set(AppColor.Titles, ColorRGBA(0, 0, 0))
+    colors.set(AppColor.Nibs, ColorRGBA(180, 180, 180))
+    colors.set(AppColor.Labels, ColorRGBA(0, 0, 0))
+    colors.set(AppColor.BollingerFill, ColorRGBA(150, 150, 150, 30))
+    colors.set(AppColor.EMA, ColorRGBA(80, 120, 190))
+    colors.set(AppColor.LineRSI, ColorRGBA(80, 120, 190))
+    colors.set(AppColor.CandlePositive, ColorRGBA(18, 200, 50))
+    colors.set(AppColor.SMA, ColorRGBA(255, 160, 0))
+    colors.set(AppColor.VolumeFill, ColorRGBA(254, 160, 0))
+}
+else {
+    colors.set(AppColor.BackgroundPanel, ColorRGBA(32, 32, 32))
+    colors.set(AppColor.BackgroundChart, ColorRGBA(24, 24, 24))
+    colors.set(AppColor.Titles, ColorRGBA(235, 190, 0))
+    colors.set(AppColor.Nibs, ColorRGBA(180, 180, 180))
+    colors.set(AppColor.Labels, ColorRGBA(235, 190, 0))
+    colors.set(AppColor.BollingerFill, ColorRGBA(255, 255, 255, 13))
+    colors.set(AppColor.EMA, ColorRGBA(255, 255, 255))
+    colors.set(AppColor.LineRSI, ColorRGBA(255, 255, 255))
+    colors.set(AppColor.CandlePositive, ColorRGBA(28, 231, 69))
+    colors.set(AppColor.SMA, ColorRGBA(254, 204, 0))
+    colors.set(AppColor.VolumeFill, ColorRGBA(254, 204, 0))
+}
+
 colors.set(AppColor.Axes, ColorRGBA(150, 150, 150))
-colors.set(AppColor.Nibs, ColorRGBA(180, 180, 180))
-colors.set(AppColor.Labels, ColorRGBA(235, 190, 0))
 colors.set(AppColor.Ticks, colors.get(AppColor.Labels))
-colors.set(AppColor.CandlePositive, ColorRGBA(28, 231, 69))
 colors.set(AppColor.CandleNegative, ColorRGBA(219, 40, 68))
-colors.set(AppColor.SMA, ColorRGBA(254, 204, 0))
-colors.set(AppColor.EMA, ColorRGBA(255, 255, 255))
-colors.set(AppColor.VolumeFill, ColorRGBA(254, 204, 0))
 colors.set(AppColor.VolumeStroke, ColorRGBA(0, 0, 0, 0))
-colors.set(AppColor.BollingerFill, ColorRGBA(255, 255, 255, 13))
 colors.set(AppColor.BollingerStroke, ColorRGBA(66, 66, 66))
-colors.set(AppColor.LineRSI, ColorRGBA(255, 255, 255))
 colors.set(AppColor.HighRSI, ColorRGBA(219, 40, 68))
 colors.set(AppColor.LowRSI, ColorRGBA(28, 231, 69))
 colors.set(AppColor.AutoCursorFill, colors.get(AppColor.BackgroundChart))
 colors.set(AppColor.AutoCursorStroke, colors.get(AppColor.Ticks))
-
 const solidFills = new Map<AppColor, SolidFill>()
 colors.forEach((color, key) => solidFills.set(key, new SolidFill({ color })))
 

@@ -95,6 +95,10 @@
             const githubLinkImage = document.getElementById( 'github-link-image' )
             githubLinkImage.className += ' hidden'
         }
+        // Use theme if provided
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('theme') == 'light')
+            document.styleSheets[0].insertRule('label {color:black;}', document.styleSheets[0].cssRules.length)
     </script>
   </body>
 </html>
