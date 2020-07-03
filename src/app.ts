@@ -773,6 +773,7 @@ if (theme == Themes.light){
     colors.set(AppColor.CandlePositive, ColorRGBA(18, 200, 50))
     colors.set(AppColor.SMA, ColorRGBA(255, 160, 0))
     colors.set(AppColor.VolumeFill, ColorRGBA(254, 160, 0))
+    colors.set(AppColor.BollingerStroke, ColorRGBA(200,200, 200))
 }
 else {
     colors.set(AppColor.BackgroundPanel, ColorRGBA(32, 32, 32))
@@ -786,13 +787,13 @@ else {
     colors.set(AppColor.CandlePositive, ColorRGBA(28, 231, 69))
     colors.set(AppColor.SMA, ColorRGBA(254, 204, 0))
     colors.set(AppColor.VolumeFill, ColorRGBA(254, 204, 0))
+    colors.set(AppColor.BollingerStroke, ColorRGBA(66, 66, 66))
 }
 
 colors.set(AppColor.Axes, ColorRGBA(150, 150, 150))
 colors.set(AppColor.Ticks, colors.get(AppColor.Labels))
 colors.set(AppColor.CandleNegative, ColorRGBA(219, 40, 68))
 colors.set(AppColor.VolumeStroke, ColorRGBA(0, 0, 0, 0))
-colors.set(AppColor.BollingerStroke, ColorRGBA(66, 66, 66))
 colors.set(AppColor.HighRSI, ColorRGBA(219, 40, 68))
 colors.set(AppColor.LowRSI, ColorRGBA(28, 231, 69))
 colors.set(AppColor.AutoCursorFill, colors.get(AppColor.BackgroundChart))
