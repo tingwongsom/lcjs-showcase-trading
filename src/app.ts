@@ -1,21 +1,24 @@
 // polyfill window.fetch for browsers which don't natively support it.
 import 'whatwg-fetch'
-import { lightningChart, emptyFill, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, Axis, VisibleTicks, emptyLine, transparentFill, emptyTick, transparentLine, AreaSeries, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds } from "@arction/lcjs"
+import { lightningChart, emptyFill, Themes, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, VisibleTicks, emptyLine, emptyTick, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds } from "@arction/lcjs"
 import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relativeStrengthIndex } from '@arction/lcjs-analysis'
+import { DataSource } from './dataSources'
+import { DataCache, DataRange, DataSourceInfo, OHLCDataFormat } from './dataCache'
+
+// Use theme if provided
+const urlParams = new URLSearchParams(window.location.search);
+let theme = Themes.dark
+if (urlParams.get('theme') == 'light')
+    theme = Themes.light
 
 //#region ----- Application configuration -----
 
 // *** Data-source ***
-// To run application locally, you'll need to set 'dataSource' with source: 'worldtradingdata.com', and a valid API token.
-// You can get one for free from https://www.worldtradingdata.com/register
-let dataSource: {
-    source: 'arction-internal'
-} | {
-    source: 'worldtradingdata.com',
-    apiToken: string
-}
-dataSource = { source: 'arction-internal' }
-dataSource = { source: 'worldtradingdata.com', apiToken: 'cSMESEaFSyfx3m9qdna5lXYEdYlnzadFOIlIAMEE7OihsT5b1bquQdTcZWus' }
+// To run application locally, you'll need to set 'dataSource' with source: DataSource.AlphaVantage, and a valid API token.
+// You can get one for free from https://www.alphavantage.co/
+let dataSource: DataSourceInfo
+dataSource = { source: DataSource.AlphaVantageArctionInternal }
+// dataSource = { source: DataSource.AlphaVantage, apiToken: 'API-KEY-HERE' }
 
 
 // To disable/enable/modify charts inside application, alter values below:
@@ -79,11 +82,10 @@ Object.keys(domElementIDs).forEach((key) => {
     domElements.set(domElementID, domElement)
 })
 
-enum DataRange { Short, Medium, Long }
-let dataRange = DataRange.Medium
-domElements.get(domElementIDs.dataSearchRange1).addEventListener('change', () => dataRange = DataRange.Short)
-domElements.get(domElementIDs.dataSearchRange2).addEventListener('change', () => dataRange = DataRange.Medium)
-domElements.get(domElementIDs.dataSearchRange3).addEventListener('change', () => dataRange = DataRange.Long)
+let dataRange = DataRange.Year
+domElements.get(domElementIDs.dataSearchRange1).addEventListener('change', () => dataRange = DataRange.Month)
+domElements.get(domElementIDs.dataSearchRange2).addEventListener('change', () => dataRange = DataRange.Year)
+domElements.get(domElementIDs.dataSearchRange3).addEventListener('change', () => dataRange = DataRange.TenYears)
 
 //#endregion
 
@@ -101,6 +103,7 @@ const countRowSpanForChart = (chartIndex: number) => chartConfigs.reduce(
 
 // Create Dashboard inside chart container div. 
 const dashboard = lightningChart().Dashboard({
+    theme,
     containerId: domElementIDs.chartContainer,
     numberOfColumns: 1,
     // Count row span for all charts.
@@ -162,7 +165,7 @@ if (chartConfigOHLC.show) {
         .setDraggingMode(UIDraggingModes.notDraggable)
         // Set dark, tinted Background style.
         .setBackground((background) => background
-            .setFillStyle(new SolidFill({ color: ColorHEX('#000').setA(150) }))
+            .setFillStyle(new SolidFill({ color: theme.chartBackgroundFillStyle.get('color').setA(150) }))
             .setStrokeStyle(emptyLine)
         )
     chartOHLCTitle = _chartOHLCTitle
@@ -251,7 +254,7 @@ if (chartConfigVolume.show) {
         .setDraggingMode(UIDraggingModes.notDraggable)
         // Set dark, tinted Background style.
         .setBackground((background) => background
-            .setFillStyle(new SolidFill({ color: ColorHEX('#000').setA(150) }))
+            .setFillStyle(new SolidFill({ color: theme.chartBackgroundFillStyle.get('color').setA(150) }))
             .setStrokeStyle(emptyLine)
         )
     chartVolumeTitle = _chartVolumeTitle
@@ -307,7 +310,7 @@ if (chartConfigRSI.show) {
         .setDraggingMode(UIDraggingModes.notDraggable)
         // Set dark, tinted Background style.
         .setBackground((background) => background
-            .setFillStyle(new SolidFill({ color: ColorHEX('#000').setA(150) }))
+            .setFillStyle(new SolidFill({ color: theme.chartBackgroundFillStyle.get('color').setA(150) }))
             .setStrokeStyle(emptyLine)
         );
     chartRSITitle = _chartRSITitle
@@ -411,7 +414,7 @@ type AppDataFormat = { [key: string]: StringOHLCWithVolume }
 
 const dateTimeTicks: CustomTick[] = []
 let dataExists = false
-const renderOHLCData = (name: string, data: AppDataFormat) => {
+const renderOHLCData = (name: string, data: OHLCDataFormat) => {
     dataExists = true
     //#region ----- Prepare data for rendering with LCJS -----
     // Map values to LCJS accepted format, with an additional X value.
@@ -451,7 +454,7 @@ const renderOHLCData = (name: string, data: AppDataFormat) => {
             return undefined
     }
     // Set DateTimeFormatter.
-    dateTimeFormatter = dataRange === DataRange.Short ?
+    dateTimeFormatter = dataRange === DataRange.Month ?
         new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', minute: 'numeric', hour: 'numeric' }) :
         new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'long', year: 'numeric' })
 
@@ -477,7 +480,7 @@ const renderOHLCData = (name: string, data: AppDataFormat) => {
     }
 
     //#region ----- Render data -----
-    const averagingFrameLength = dataRange === DataRange.Short ? 'averagingFrameLengthIntraday' : 'averagingFrameLength'
+    const averagingFrameLength = dataRange === DataRange.Month ? 'averagingFrameLengthIntraday' : 'averagingFrameLength'
 
     //#region OHLC.
     if (seriesOHLC) {
@@ -563,8 +566,8 @@ const renderOHLCData = (name: string, data: AppDataFormat) => {
 
     // Set title of OHLC Chart to show name data.
     if (chartOHLCTitle) {
-        const dataRangeLabel = dataRange === DataRange.Short ?
-            '1 month' : (dataRange === DataRange.Medium ?
+        const dataRangeLabel = dataRange === DataRange.Month ?
+            '1 month' : (dataRange === DataRange.Year ?
                 '1 year' :
                 '10 years'
             )
@@ -580,7 +583,7 @@ const renderOHLCData = (name: string, data: AppDataFormat) => {
     dateTimeTicks.length = 0
 
     // Different Ticks based on data range.
-    if (dataRange === DataRange.Short) {
+    if (dataRange === DataRange.Month) {
         // Each day has its own tick.
         const dayFormatter = new Intl.DateTimeFormat(undefined, { day: '2-digit' })
         let prevDay: number | undefined
@@ -598,7 +601,7 @@ const renderOHLCData = (name: string, data: AppDataFormat) => {
                 prevDay = day
             }
         }
-    } else if (dataRange === DataRange.Medium) {
+    } else if (dataRange === DataRange.Year) {
         // Each month has its own tick.
         const startOfMonthFormatter = new Intl.DateTimeFormat(undefined, { month: 'short' })
         let prevMonth: number | undefined
@@ -616,7 +619,7 @@ const renderOHLCData = (name: string, data: AppDataFormat) => {
                 prevMonth = month
             }
         }
-    } else if (dataRange === DataRange.Long) {
+    } else if (dataRange === DataRange.TenYears) {
         // Each year has its own tick.
         const dayFormatter = new Intl.DateTimeFormat(undefined, { year: 'numeric' })
         let prevYear: number | undefined
@@ -652,10 +655,12 @@ const dataSearchFailed = (searchSymbol: string) => {
     console.log('No data found for \'', searchSymbol, '\'')
     alert(`Data for '${searchSymbol}' not found. May be that:
 1) Search symbol is not valid stock label.
-2) Requested stock data or data-range is not available from worldtradingdata.com.
+2) Requested stock data is not available from data provider.
 3) Data subscription limit has been reached for this day.
 ` )
 }
+
+const dataCaches: Map<string, DataCache> = new Map()
 
 // Define function that searches OHLC data.
 const searchData = () => {
@@ -668,96 +673,38 @@ const searchData = () => {
      * Symbol to search.
      */
     const symbol: string = searchSymbol
-    /**
-     * Sorting basis.
-     */
-    const sort: 'asc' | 'desc' | 'newest' | 'oldest' = 'asc'
-    let dataRangeQuery: string
+    // mode
     let mode: 'history' | 'intraday'
 
-    if (dataRange !== DataRange.Short) {
-        // HISTORY data.
-        /**
-         * Start date of HISTORY data retrieval.
-         *
-         * YYYY-MM-DD
-         */
-        let date_from: string = ''
+    switch (dataRange) {
+        case DataRange.Month:
+            mode = 'intraday'
+            break
+        case DataRange.Year:
+        case DataRange.TenYears:
+        default:
+            mode = 'history'
+    }
 
-        const now = new Date()
-        const dataRangeTime = dataRange === DataRange.Medium ?
-            // 1 Year.
-            1 * 365 * 24 * 60 * 60 * 1000 :
-            // 10 Years.
-            10 * 365 * 24 * 60 * 60 * 1000
-        const nBack = new Date(
-            now.getTime() +
-            (-dataRangeTime) +
-            // Load extra data based on averagingFrameLength.
-            (-2 * maxAveragingFrameLength * 24 * 60 * 60 * 1000)
-        )
-        const year = nBack.getUTCFullYear()
-        const month = nBack.getUTCMonth() + 1
-        const date = nBack.getUTCDate()
-        date_from = `${year}-${month >= 10 ? '' : 0}${month}-${date >= 10 ? '' : 0}${date}`
-        console.log('Data from', date_from)
+    let cached = dataCaches.get(symbol)
 
-        mode = 'history'
-        dataRangeQuery = `date_from=${date_from}`
+    if (!cached) {
+        const cache = new DataCache(symbol, dataSource)
+        dataCaches.set(symbol, cache)
+        cached = cache
+    }
+    let dataPromise
+    if (mode === 'history') {
+        dataPromise = cached.getDailyData(dataRange)
     } else {
-        // INTRADAY data.
-        /**
-         * Number of minutes between data points for INTRADAY data retrieval.
-         */
-        let interval: string = ''
-        /**
-         * Number of days data is returned for INTRADAY data retrieval.
-         */
-        let range: string = ''
-
-        interval = '15'
-        range = '30'
-
-        mode = 'intraday'
-        dataRangeQuery = `interval=${interval}&range=${range}`
+        dataPromise = cached.getIntraDayData()
     }
-
-    if (dataSource.source === 'arction-internal') {
-        fetch(`https://trading-data-facade.azurewebsites.net/?source=worldtradingdata.com&mode=${mode}&${dataRangeQuery}&symbol=${symbol}&sort=${sort}`)
-            .then((response) => response.json())
-            .then((data) => {
-                renderOHLCData(`${searchSymbol} ${mode}`, data)
-            })
-            .catch((reason) => {
-                dataSearchFailed(searchSymbol)
-            })
-    } else if (dataSource.source === 'worldtradingdata.com') {
-        // Use worldtradingdata.com API.
-        console.log('Requesting worldtradingdata.com for \'' + searchSymbol + '\'')
-        /**
-         * worldtradingdata.com API Token.
-         */
-        const apiToken: 'demo' | string = dataSource.apiToken
-
-        fetch(`https://www.worldtradingdata.com/api/v1/${mode}?${dataRangeQuery}&symbol=${symbol}&sort=${sort}&api_token=${apiToken}`)
-            .then((response) => response.json())
-            .then((result) => {
-                // Check for static error message.
-                if ('Message' in result) {
-                    // Assume error message.
-                    dataSearchFailed(searchSymbol)
-                } else {
-                    console.log('Received data from worldtradingdata.com')
-                    const data = result[mode]
-                    renderOHLCData(`${searchSymbol} ${mode}`, data)
-                }
-            })
-            .catch((reason) => {
-                dataSearchFailed(searchSymbol)
-            })
-    }
-    else
-        throw new Error('Unknown data source.')
+    dataPromise.then((data) => {
+        renderOHLCData(`${searchSymbol} ${mode}`, data)
+    })
+        .catch((reason) => {
+            dataSearchFailed(searchSymbol)
+        })
 }
 
 // Subscribe to events where data-search is activated.
@@ -813,27 +760,44 @@ enum AppColor {
     AutoCursorStroke
 }
 const colors = new Map<AppColor, Color>()
-colors.set(AppColor.BackgroundPanel, ColorRGBA(32, 32, 32))
-colors.set(AppColor.BackgroundChart, ColorRGBA(24, 24, 24))
-colors.set(AppColor.Titles, ColorRGBA(235, 190, 0))
+
+if (theme == Themes.light){
+    colors.set(AppColor.BackgroundPanel, ColorRGBA(255, 255, 255))
+    colors.set(AppColor.BackgroundChart, ColorRGBA(252, 252, 252))
+    colors.set(AppColor.Titles, ColorRGBA(0, 0, 0))
+    colors.set(AppColor.Nibs, ColorRGBA(180, 180, 180))
+    colors.set(AppColor.Labels, ColorRGBA(0, 0, 0))
+    colors.set(AppColor.BollingerFill, ColorRGBA(150, 150, 150, 30))
+    colors.set(AppColor.EMA, ColorRGBA(80, 120, 190))
+    colors.set(AppColor.LineRSI, ColorRGBA(80, 120, 190))
+    colors.set(AppColor.CandlePositive, ColorRGBA(18, 200, 50))
+    colors.set(AppColor.SMA, ColorRGBA(255, 160, 0))
+    colors.set(AppColor.VolumeFill, ColorRGBA(254, 160, 0))
+    colors.set(AppColor.BollingerStroke, ColorRGBA(200,200, 200))
+}
+else {
+    colors.set(AppColor.BackgroundPanel, ColorRGBA(32, 32, 32))
+    colors.set(AppColor.BackgroundChart, ColorRGBA(24, 24, 24))
+    colors.set(AppColor.Titles, ColorRGBA(235, 190, 0))
+    colors.set(AppColor.Nibs, ColorRGBA(180, 180, 180))
+    colors.set(AppColor.Labels, ColorRGBA(235, 190, 0))
+    colors.set(AppColor.BollingerFill, ColorRGBA(255, 255, 255, 13))
+    colors.set(AppColor.EMA, ColorRGBA(255, 255, 255))
+    colors.set(AppColor.LineRSI, ColorRGBA(255, 255, 255))
+    colors.set(AppColor.CandlePositive, ColorRGBA(28, 231, 69))
+    colors.set(AppColor.SMA, ColorRGBA(254, 204, 0))
+    colors.set(AppColor.VolumeFill, ColorRGBA(254, 204, 0))
+    colors.set(AppColor.BollingerStroke, ColorRGBA(66, 66, 66))
+}
+
 colors.set(AppColor.Axes, ColorRGBA(150, 150, 150))
-colors.set(AppColor.Nibs, ColorRGBA(180, 180, 180))
-colors.set(AppColor.Labels, ColorRGBA(235, 190, 0))
 colors.set(AppColor.Ticks, colors.get(AppColor.Labels))
-colors.set(AppColor.CandlePositive, ColorRGBA(28, 231, 69))
 colors.set(AppColor.CandleNegative, ColorRGBA(219, 40, 68))
-colors.set(AppColor.SMA, ColorRGBA(254, 204, 0))
-colors.set(AppColor.EMA, ColorRGBA(255, 255, 255))
-colors.set(AppColor.VolumeFill, ColorRGBA(254, 204, 0))
 colors.set(AppColor.VolumeStroke, ColorRGBA(0, 0, 0, 0))
-colors.set(AppColor.BollingerFill, ColorRGBA(255, 255, 255, 13))
-colors.set(AppColor.BollingerStroke, ColorRGBA(66, 66, 66))
-colors.set(AppColor.LineRSI, ColorRGBA(255, 255, 255))
 colors.set(AppColor.HighRSI, ColorRGBA(219, 40, 68))
 colors.set(AppColor.LowRSI, ColorRGBA(28, 231, 69))
 colors.set(AppColor.AutoCursorFill, colors.get(AppColor.BackgroundChart))
 colors.set(AppColor.AutoCursorStroke, colors.get(AppColor.Ticks))
-
 const solidFills = new Map<AppColor, SolidFill>()
 colors.forEach((color, key) => solidFills.set(key, new SolidFill({ color })))
 

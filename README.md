@@ -1,6 +1,6 @@
 # LightningChart JS Trading showcase application
 
-Trading chart application created using LightningChart JS and worldtradingdata.com API.
+Trading chart application created using LightningChart JS and https://www.alphavantage.co/ API.
 
 The logic of computing the trading indicators values is separated into its own open source project at https://github.com/Arction/lcjs-analysis.
 
@@ -8,7 +8,7 @@ More information about LightningChart<sup>&#174;</sup> JS can be found from our 
 
 ## Description
 
-Trading chart with live data fetched from worldtradingdata.com. Features:
+Trading chart with live data fetched from [Alpha Vantage](https://www.alphavantage.co/). Features:
 - OHLC
 - Simple Moving Average
 - Exponential Moving Average
