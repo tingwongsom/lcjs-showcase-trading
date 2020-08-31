@@ -35,8 +35,10 @@ module.exports = {
             title: 'LCJS Trading Chart',
             template: './src/index.html'
         }),
-        new CopyWebpackPlugin([
-            { from: 'src/static', to: '' }
-        ])
+        new CopyWebpackPlugin({
+            patterns: [
+                { from: 'src/static', to: '' }
+            ]
+        })
     ]
 }
