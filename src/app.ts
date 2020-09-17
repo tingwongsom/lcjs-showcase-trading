@@ -1,6 +1,6 @@
 // polyfill window.fetch for browsers which don't natively support it.
 import 'whatwg-fetch'
-import { lightningChart, emptyFill, Themes, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, VisibleTicks, emptyLine, emptyTick, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds } from "@arction/lcjs"
+import { lightningChart, emptyFill, Themes, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, VisibleTicks, emptyLine, emptyTick, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds, FormattingFunctions, NumericTickStrategy, Axis, TickStyle } from "@arction/lcjs"
 import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relativeStrengthIndex } from '@arction/lcjs-analysis'
 import { DataSource } from './dataSources'
 import { DataCache, DataRange, DataSourceInfo, OHLCDataFormat } from './dataCache'
@@ -104,7 +104,7 @@ const countRowSpanForChart = (chartIndex: number) => chartConfigs.reduce(
 // Create Dashboard inside chart container div. 
 const dashboard = lightningChart().Dashboard({
     theme,
-    containerId: domElementIDs.chartContainer,
+    container: domElementIDs.chartContainer,
     numberOfColumns: 1,
     // Count row span for all charts.
     numberOfRows: countRowSpanForChart(chartConfigs.length)
@@ -116,7 +116,6 @@ let dateTimeFormatter = { format: (date) => '' }
 // Function which gets Date from indexed X coordinate.
 let getDateFromIndex: (x: number) => Date = (x) => undefined
 const dateTimeTickStrategy = {
-    computeMinimalPrecision: AxisTickStrategies.Numeric.computeMinimalPrecision,
     formatValue: (x: number) => dateTimeFormatter.format(getDateFromIndex(Math.round(x)))
 }
 // Builder for CustomTicks ticks with no Background.
@@ -142,15 +141,14 @@ if (chartConfigOHLC.show) {
         columnIndex: 0,
         columnSpan: 1,
         rowIndex: countRowSpanForChart(chartConfigs.indexOf(chartConfigOHLC)),
-        rowSpan: chartConfigOHLC.verticalSpans,
-        chartXYOptions: {
-            defaultAxisXTickStrategy: dateTimeTickStrategy
-        }
+        rowSpan: chartConfigOHLC.verticalSpans
     })
 
-    // Create custom title attached to the top of Y Axis.
+    
     const axisX = chartOHLC.getDefaultAxisX()
+    axisX.setTickStrategy(AxisTickStrategies.Numeric, (styler) => styler.setFormattingFunction(dateTimeTickStrategy.formatValue))
     const axisY = chartOHLC.getDefaultAxisY()
+    // Create custom title attached to the top of Y Axis.
     const _chartOHLCTitle = chartOHLC.addUIElement(
         UIElementBuilders.TextBox
             .setBackground(UIBackgrounds.Rectangle),
@@ -213,7 +211,7 @@ if (chartConfigOHLC.show) {
     })
         .setName('OHLC')
         // Disable data-cleaning.
-        .setMaxPointsCount(undefined)
+        .setMaxPointCount(undefined)
         // Disable auto fitting of Figures (meaning, show one figure for one input data point).
         .setFigureAutoFitting(false)
 }
@@ -229,17 +227,17 @@ if (chartConfigVolume.show) {
         columnIndex: 0,
         columnSpan: 1,
         rowIndex: countRowSpanForChart(chartConfigs.indexOf(chartConfigVolume)),
-        rowSpan: chartConfigVolume.verticalSpans,
-        chartXYOptions: {
-            defaultAxisXTickStrategy: dateTimeTickStrategy,
-            // Volume data has a lot of quantity, so better select Units (K, M, etc.).
-            defaultAxisYTickStrategy: AxisTickStrategies.NumericWithUnits
-        }
+        rowSpan: chartConfigVolume.verticalSpans
     })
 
-    // Create custom title attached to the top of Y Axis.
     const axisX = chartVolume.getDefaultAxisX()
     const axisY = chartVolume.getDefaultAxisY()
+    axisX.setTickStrategy(AxisTickStrategies.Numeric, (styler) => styler.setFormattingFunction(dateTimeTickStrategy.formatValue))
+    // Volume data has a lot of quantity, so better select Units (K, M, etc.).
+    axisY.setTickStrategy(AxisTickStrategies.Numeric, (styler) => styler
+        .setFormattingFunction(FormattingFunctions.NumericUnits)
+    )
+    // Create custom title attached to the top of Y Axis.
     const _chartVolumeTitle = chartVolume.addUIElement(
         UIElementBuilders.TextBox
             .setBackground(UIBackgrounds.Rectangle),
@@ -287,15 +285,13 @@ if (chartConfigRSI.show) {
         columnIndex: 0,
         columnSpan: 1,
         rowIndex: countRowSpanForChart(chartConfigs.indexOf(chartConfigRSI)),
-        rowSpan: chartConfigRSI.verticalSpans,
-        chartXYOptions: {
-            defaultAxisXTickStrategy: dateTimeTickStrategy
-        }
+        rowSpan: chartConfigRSI.verticalSpans
     })
 
-    // Create custom title attached to the top of Y Axis.
     const axisX = chartRSI.getDefaultAxisX()
     const axisY = chartRSI.getDefaultAxisY()
+    axisX.setTickStrategy(AxisTickStrategies.Numeric, (styler) => styler.setFormattingFunction(dateTimeTickStrategy.formatValue))
+    // Create custom title attached to the top of Y Axis.
     const _chartRSITitle = chartRSI.addUIElement(
         UIElementBuilders.TextBox
             .setBackground(UIBackgrounds.Rectangle),
@@ -330,7 +326,7 @@ if (chartConfigRSI.show) {
 
     // Create RSI ticks with CustomTicks, to better indicate common thresholds of 30% and 70%.
     axisY
-        .setTickStyle(emptyTick)
+        .setTickStrategy(AxisTickStrategies.Empty)
         // RSI interval always from 0 to 100.
         .setInterval(0, 100)
         .setScrollStrategy(undefined)
@@ -761,7 +757,7 @@ enum AppColor {
 }
 const colors = new Map<AppColor, Color>()
 
-if (theme == Themes.light){
+if (theme == Themes.light) {
     colors.set(AppColor.BackgroundPanel, ColorRGBA(255, 255, 255))
     colors.set(AppColor.BackgroundChart, ColorRGBA(252, 252, 252))
     colors.set(AppColor.Titles, ColorRGBA(0, 0, 0))
@@ -773,14 +769,13 @@ if (theme == Themes.light){
     colors.set(AppColor.CandlePositive, ColorRGBA(18, 200, 50))
     colors.set(AppColor.SMA, ColorRGBA(255, 160, 0))
     colors.set(AppColor.VolumeFill, ColorRGBA(254, 160, 0))
-    colors.set(AppColor.BollingerStroke, ColorRGBA(200,200, 200))
-}
-else {
+    colors.set(AppColor.BollingerStroke, ColorRGBA(200, 200, 200))
+} else {
     colors.set(AppColor.BackgroundPanel, ColorRGBA(32, 32, 32))
     colors.set(AppColor.BackgroundChart, ColorRGBA(24, 24, 24))
-    colors.set(AppColor.Titles, ColorRGBA(235, 190, 0))
+    colors.set(AppColor.Titles, ColorRGBA(241, 246, 242))
     colors.set(AppColor.Nibs, ColorRGBA(180, 180, 180))
-    colors.set(AppColor.Labels, ColorRGBA(235, 190, 0))
+    colors.set(AppColor.Labels, ColorRGBA(241, 246, 242))
     colors.set(AppColor.BollingerFill, ColorRGBA(255, 255, 255, 13))
     colors.set(AppColor.EMA, ColorRGBA(255, 255, 255))
     colors.set(AppColor.LineRSI, ColorRGBA(255, 255, 255))
@@ -874,22 +869,36 @@ for (let i = 0; i < charts.length; i++) {
                 .setAnimationZoom(undefined)
 
             const tickStyle = axis.getTickStyle()
-            if (tickStyle !== emptyTick)
-                axis
-                    .setTickStyle((tickStyle: VisibleTicks) => tickStyle
+            axis
+                .setTickStyle<'Numeric'>(styler => styler
+                    .setMajorTickStyle((tickStyle: VisibleTicks) => tickStyle
                         .setLabelFillStyle(solidFills.get(AppColor.Labels))
                         .setLabelFont((font) => font
                             .setSize(fontSize)
                         )
                         .setTickStyle(solidLines.get(AppColor.Ticks).get(AppLineThickness.Thin))
                     )
+                    .setMinorTickStyle((tickStyle: VisibleTicks) => tickStyle
+                        .setLabelFillStyle(solidFills.get(AppColor.Labels))
+                        .setLabelFont((font) => font
+                            .setSize(fontSize)
+                        )
+                        .setTickStyle(solidLines.get(AppColor.Ticks).get(AppLineThickness.Thin))
+                    )
+                )
             axis
                 .setStrokeStyle(solidLines.get(AppColor.Axes).get(AppLineThickness.Thick))
                 .setNibStyle(solidLines.get(AppColor.Nibs).get(AppLineThickness.Thick))
         }
         axisX
-            .setTickStyle(emptyTick)
-
+            .setTickStyle<'Numeric'>(styler => styler
+                .setMajorTickStyle((tickStyle:VisibleTicks)=>tickStyle
+                    .setLabelFont((f)=>f.setSize(0))
+                    .setLabelPadding(0)
+                    .setTickLength(0)
+                )
+                .setMinorTickStyle(emptyTick)
+            )
         if (!isChartWithMasterAxis) {
             // This Charts X Axis is configured to scroll according to the master Axis.
             axisX
