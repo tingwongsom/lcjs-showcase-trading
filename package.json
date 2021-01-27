@@ -24,7 +24,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "@arction/lcjs": "^2.0.2",
+    "@arction/lcjs": "^2.2.0",
     "@arction/lcjs-analysis": "^1.0.4",
     "whatwg-fetch": "^3.4.1"
   }
