@@ -1,6 +1,6 @@
 // polyfill window.fetch for browsers which don't natively support it.
 import 'whatwg-fetch'
-import { lightningChart, emptyFill, Themes, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, VisibleTicks, emptyLine, emptyTick, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds, FormattingFunctions, NumericTickStrategy, Axis, TickStyle } from "@arction/lcjs"
+import { lightningChart, emptyFill, Themes, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, VisibleTicks, emptyLine, emptyTick, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds, FormattingFunctions, NumericTickStrategy, Axis, TickStyle, UIPointableTextBox } from "@arction/lcjs"
 import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relativeStrengthIndex } from '@arction/lcjs-analysis'
 import { DataSource } from './dataSources'
 import { DataCache, DataRange, DataSourceInfo, OHLCDataFormat } from './dataCache'
@@ -153,8 +153,8 @@ if (chartConfigOHLC.show) {
         UIElementBuilders.TextBox
             .setBackground(UIBackgrounds.Rectangle),
         {
-            x: axisX.scale,
-            y: axisY.scale
+            x: axisX,
+            y: axisY
         }
     )
         .setText('')
@@ -163,13 +163,13 @@ if (chartConfigOHLC.show) {
         .setDraggingMode(UIDraggingModes.notDraggable)
         // Set dark, tinted Background style.
         .setBackground((background) => background
-            .setFillStyle(new SolidFill({ color: theme.chartBackgroundFillStyle.get('color').setA(150) }))
+            .setFillStyle(new SolidFill({ color: theme.seriesBackgroundFillStyle.get('color').setA(150) }))
             .setStrokeStyle(emptyLine)
         )
     chartOHLCTitle = _chartOHLCTitle
     // Follow Axis interval changes to keep title positioned where it should be.
-    axisX.onScaleChange((start, end) => _chartOHLCTitle.setPosition({ x: start, y: axisY.scale.getInnerEnd() }))
-    axisY.onScaleChange((start, end) => _chartOHLCTitle.setPosition({ x: axisX.scale.getInnerStart(), y: end }))
+    axisX.onScaleChange((start, end) => _chartOHLCTitle.setPosition({ x: start, y: axisY.getInterval().end }))
+    axisY.onScaleChange((start, end) => _chartOHLCTitle.setPosition({ x: axisX.getInterval().start, y: end }))
 
     if (chartConfigOHLC.bollinger.show) {
         // Create Bollinger Series.
@@ -182,10 +182,7 @@ if (chartConfigOHLC.show) {
     }
     if (chartConfigOHLC.sma.show) {
         // Create SMA Series.
-        seriesSMA = chartOHLC.addLineSeries({
-            // Use freeform to behave similarly as OHLC ( freeform mouse-picking ).
-            dataPattern: DataPatterns.freeform
-        })
+        seriesSMA = chartOHLC.addLineSeries()
             .setName('SMA')
             // Disable data-cleaning.
             .setMaxPointCount(undefined)
@@ -194,10 +191,7 @@ if (chartConfigOHLC.show) {
     }
     if (chartConfigOHLC.ema.show) {
         // Create EMA Series.
-        seriesEMA = chartOHLC.addLineSeries({
-            // Use freeform to behave similarly as OHLC ( freeform mouse-picking ).
-            dataPattern: DataPatterns.freeform
-        })
+        seriesEMA = chartOHLC.addLineSeries()
             .setName('EMA')
             // Disable data-cleaning.
             .setMaxPointCount(undefined)
@@ -242,8 +236,8 @@ if (chartConfigVolume.show) {
         UIElementBuilders.TextBox
             .setBackground(UIBackgrounds.Rectangle),
         {
-            x: axisX.scale,
-            y: axisY.scale
+            x: axisX,
+            y: axisY
         }
     )
         .setText('Volume')
@@ -252,13 +246,13 @@ if (chartConfigVolume.show) {
         .setDraggingMode(UIDraggingModes.notDraggable)
         // Set dark, tinted Background style.
         .setBackground((background) => background
-            .setFillStyle(new SolidFill({ color: theme.chartBackgroundFillStyle.get('color').setA(150) }))
+            .setFillStyle(new SolidFill({ color: theme.seriesBackgroundFillStyle.get('color').setA(150) }))
             .setStrokeStyle(emptyLine)
         )
     chartVolumeTitle = _chartVolumeTitle
     // Follow Axis interval changes to keep title positioned where it should be.
-    axisX.onScaleChange((start, end) => _chartVolumeTitle.setPosition({ x: start, y: axisY.scale.getInnerEnd() }))
-    axisY.onScaleChange((start, end) => _chartVolumeTitle.setPosition({ x: axisX.scale.getInnerStart(), y: end }))
+    axisX.onScaleChange((start, end) => _chartVolumeTitle.setPosition({ x: start, y: axisY.getInterval().end }))
+    axisY.onScaleChange((start, end) => _chartVolumeTitle.setPosition({ x: axisX.getInterval().start, y: end }))
 
     // Create Volume Series.
     seriesVolume = chartVolume.addAreaSeries({
@@ -296,8 +290,8 @@ if (chartConfigRSI.show) {
         UIElementBuilders.TextBox
             .setBackground(UIBackgrounds.Rectangle),
         {
-            x: axisX.scale,
-            y: axisY.scale
+            x: axisX,
+            y: axisY
         }
     )
         .setText('RSI')
@@ -306,17 +300,19 @@ if (chartConfigRSI.show) {
         .setDraggingMode(UIDraggingModes.notDraggable)
         // Set dark, tinted Background style.
         .setBackground((background) => background
-            .setFillStyle(new SolidFill({ color: theme.chartBackgroundFillStyle.get('color').setA(150) }))
+            .setFillStyle(new SolidFill({ color: theme.seriesBackgroundFillStyle.get('color').setA(150) }))
             .setStrokeStyle(emptyLine)
         );
     chartRSITitle = _chartRSITitle
     // Follow Axis interval changes to keep title positioned where it should be.
-    axisX.onScaleChange((start, end) => _chartRSITitle.setPosition({ x: start, y: axisY.scale.getInnerEnd() }))
-    axisY.onScaleChange((start, end) => _chartRSITitle.setPosition({ x: axisX.scale.getInnerStart(), y: end }))
+    axisX.onScaleChange((start, end) => _chartRSITitle.setPosition({ x: start, y: axisY.getInterval().end }))
+    axisY.onScaleChange((start, end) => _chartRSITitle.setPosition({ x: axisX.getInterval().start, y: end }))
 
     // Create RSI Series.
     seriesRSI = chartRSI.addLineSeries({
-        dataPattern: DataPatterns.horizontalProgressive
+        dataPattern: {
+            pattern:'ProgressiveX'
+        }
     })
         .setName('RSI')
         // Disable data-cleaning.
@@ -371,7 +367,7 @@ const HandleScaleChangeX = (chartIndex: number) => {
         for (let i = 0; i < charts.length; i++) {
             if (chartConfigs[i].show) {
                 const axis = charts[i].getDefaultAxisX()
-                if (i !== chartIndex && (axis.scale.getInnerStart() !== start || axis.scale.getInnerEnd() !== end))
+                if (i !== chartIndex && (axis.getInterval().start !== start || axis.getInterval().end !== end))
                     axis.setInterval(start, end)
             }
         }
@@ -823,7 +819,7 @@ for (let i = 0; i < charts.length; i++) {
             .setPadding({ top: 8, bottom: 8, left: 0 })
             // Color scheme.
             .setBackgroundFillStyle(solidFills.get(AppColor.BackgroundPanel))
-            .setChartBackgroundFillStyle(solidFills.get(AppColor.BackgroundChart))
+            .setSeriesBackgroundFillStyle(solidFills.get(AppColor.BackgroundChart))
     }
 }
 // Add top padding to very first Chart, so nothing is hidden by data-search input.
@@ -835,7 +831,7 @@ for (const title of chartTitles)
     if (title)
         title
             .setTextFillStyle(solidFills.get(AppColor.Titles))
-            .setFont((font) => font
+            .setTextFont((font) => font
                 .setSize(fontSize)
                 .setWeight('bold')
             )
@@ -849,7 +845,7 @@ for (const chart of charts)
                 .setPointerLength(0)
                 .setTextFillStyle(emptyFill)
                 // Padding is used to control distance.
-                .setPadding({ left: 50 })
+                // .setPadding({ left: 50 })
             )
             .setGridStrokeLength(0)
 //#endregion
@@ -868,7 +864,6 @@ for (let i = 0; i < charts.length; i++) {
                 .setAnimationScroll(undefined)
                 .setAnimationZoom(undefined)
 
-            const tickStyle = axis.getTickStyle()
             axis
                 .setTickStyle<'Numeric'>(styler => styler
                     .setMajorTickStyle((tickStyle: VisibleTicks) => tickStyle
@@ -915,14 +910,14 @@ for (const tick of ticksRSI)
     tick
         .setMarker((marker) => marker
             .setTextFillStyle(solidFills.get(AppColor.Ticks))
-            .setFont((font) => font
+            .setTextFont((font) => font
                 .setSize(fontSize)
             )
         )
 // Style CustomTicks created when rendering.
 tickWithoutBackgroundBuilder = tickWithoutBackgroundBuilder.addStyler((tick) => tick
     .setTextFillStyle(solidFills.get(AppColor.Labels))
-    .setFont((font) => font
+    .setTextFont((font) => font
         .setSize(fontSize)
     )
 )
@@ -983,15 +978,15 @@ const resultTableFormatter = ((tableContentBuilder, series, x, y) => tableConten
     .addRow(series.getName(), '', series.axisY.formatValue(y))
 ) as RangeSeriesFormatter & SeriesXYFormatter
 if (seriesSMA)
-    seriesSMA.setResultTableFormatter(resultTableFormatter)
+    seriesSMA.setCursorResultTableFormatter(resultTableFormatter)
 if (seriesEMA)
-    seriesEMA.setResultTableFormatter(resultTableFormatter)
+    seriesEMA.setCursorResultTableFormatter(resultTableFormatter)
 if (seriesVolume)
-    seriesVolume.setResultTableFormatter(resultTableFormatter)
+    seriesVolume.setCursorResultTableFormatter(resultTableFormatter)
 if (seriesRSI)
-    seriesRSI.setResultTableFormatter(resultTableFormatter)
+    seriesRSI.setCursorResultTableFormatter(resultTableFormatter)
 if (seriesOHLC)
-    seriesOHLC.setResultTableFormatter((tableContentBuilder, series, ohlcSegment) => tableContentBuilder
+    seriesOHLC.setCursorResultTableFormatter((tableContentBuilder, series, ohlcSegment) => tableContentBuilder
         .addRow(series.getName())
         .addRow('Open', '', series.axisY.formatValue(ohlcSegment.getOpen()))
         .addRow('High', '', series.axisY.formatValue(ohlcSegment.getHigh()))
@@ -1006,13 +1001,13 @@ const enableAutoCursorAutoColoring = (autoCursor: AutoCursorXY) => autoCursor
     .setTickMarkerYAutoTextStyle(true)
 // Style AutoCursors.
 const styleAutoCursor = (autoCursor: AutoCursorXY) => autoCursor
-    .setTickMarkerX((tickMarker) => tickMarker
+    .setTickMarkerX((tickMarker: UIPointableTextBox) => tickMarker
         .setBackground((background) => background
             .setFillStyle(solidFills.get(AppColor.AutoCursorFill))
             .setStrokeStyle(solidLines.get(AppColor.AutoCursorStroke).get(AppLineThickness.Thin))
         )
     )
-    .setTickMarkerY((tickMarker) => tickMarker
+    .setTickMarkerY((tickMarker:UIPointableTextBox) => tickMarker
         .setBackground((background) => background
             .setFillStyle(solidFills.get(AppColor.AutoCursorFill))
             .setStrokeStyle(solidLines.get(AppColor.AutoCursorStroke).get(AppLineThickness.Thin))
@@ -1043,54 +1038,6 @@ if (seriesBollinger)
     // No Cursor picking for Bollinger Bands.
     seriesBollinger
         .setCursorEnabled(false)
-//#endregion
-
-//#region ----- Add Vertical Gridlines that follow currently active AutoCursor around -----
-const tickWithoutLabelBuilder = tickWithoutBackgroundBuilder
-    .addStyler((label) => label
-        .setTextFillStyle(emptyFill)
-    )
-const verticalCursorGrids = charts.map((chart) => chart ?
-    chart.getDefaultAxisX().addCustomTick(tickWithoutLabelBuilder).dispose() :
-    undefined
-)
-// Update gridlines when mouse is moved.
-const updateVerticalCursorGrids = () => {
-    // Find Chart with active AutoCursor if any.
-    const activeAutoCursorChart = charts.reduce((cursor, chart) =>
-        cursor ? cursor : (chart ? (chart.getAutoCursor().isDisposed() ? undefined : chart) : undefined),
-        undefined
-    )
-    // Enable vertical cursor grids from Charts OTHER than the one with active AutoCursor.
-    for (let i = 0; i < verticalCursorGrids.length; i++) {
-        const grid = verticalCursorGrids[i]
-        if (grid) {
-            let hideGrid: boolean = true
-            if (activeAutoCursorChart) {
-                const chart = charts[i]
-                if (chart === activeAutoCursorChart) {
-                    // This is the Chart with active AutoCursor. We should hide the grid.
-                    hideGrid = true
-                } else {
-                    // This is not the Chart with active AutoCursor. We should enable the grid, and move its X location to same position as Cursor.
-                    hideGrid = false
-                    const cursor = activeAutoCursorChart.getAutoCursor()
-                    grid.setValue(translatePoint(cursor.getPosition(), (<any>cursor).scale, grid.scale).x)
-                }
-            }
-            if (hideGrid === true)
-                grid.dispose()
-            else
-                grid.restore()
-        }
-    }
-}
-document.addEventListener('mousemove', () => {
-    // LCJS updated AutoCursor location on next animation frame, so we must do the same to be in sync.
-    // Note that this is a temporary implementation until AutoCursor events are added to LCJS.
-    requestAnimationFrame(updateVerticalCursorGrids)
-})
-
 //#endregion
 
 //#endregion
