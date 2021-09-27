@@ -1,6 +1,6 @@
 // polyfill window.fetch for browsers which don't natively support it.
 import 'whatwg-fetch'
-import { lightningChart, emptyFill, Themes, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCCandleStick, OHLCFigures, XOHLC, Point, AxisTickStrategies, VisibleTicks, emptyLine, emptyTick, AreaSeriesTypes, ColorRGBA, Color, SolidFill, AreaPoint, SolidLine, DataPatterns, MarkerBuilders, UIElementBuilders, CustomTick, ColorHEX, UITextBox, UIOrigins, TableContentBuilder, SeriesXY, RangeSeriesFormatter, SeriesXYFormatter, AutoCursorXY, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds, FormattingFunctions, NumericTickStrategy, Axis, TickStyle, UIPointableTextBox, UITick, UIElement, AutoCursorModes, UILayoutBuilders, UIElementColumn } from "@arction/lcjs"
+import { lightningChart, emptyFill, Themes, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCFigures, XOHLC, Point, AxisTickStrategies, emptyLine, AreaSeriesTypes, ColorRGBA, SolidFill, SolidLine, UIElementBuilders, CustomTick, UITextBox, UIOrigins, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds, FormattingFunctions, UITick, UIElement, AutoCursorModes, UILayoutBuilders, UIElementColumn } from "@arction/lcjs"
 import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relativeStrengthIndex } from '@arction/lcjs-analysis'
 import { DataSource } from './dataSources'
 import { DataCache, DataRange, DataSourceInfo, OHLCDataFormat } from './dataCache'
@@ -732,7 +732,9 @@ const renderOHLCData = (name: string, data: OHLCDataFormat): void => {
     }
 
     // Immediately fit new data to view along.
-    bottomChart.getDefaultAxisX().fit(false)
+    bottomChart.getDefaultAxisX()
+        .fit(false)
+        .setThickness({min: 40})
     allCharts.forEach(chart => chart.getDefaultAxisY().fit(false))
 
     // #endregion
