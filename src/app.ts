@@ -112,17 +112,9 @@ const dashboard = lightningChart().Dashboard({
 })
 
 const alignChartHorizontally = (chart: ChartXY): void => {
-    // Sync X axes of vertically stacked charts by adding an invisible tick to each Y axis with preset length.
-   chart
-    .getDefaultAxisY()
-    .addCustomTick(UIElementBuilders.AxisTick)
-    .setTickLength(leftMarginPx)
-    // Following code makes the tick invisible.
-    .setTextFormatter(() => "")
-    .setGridStrokeStyle(emptyLine)
-    .setMarker((marker: UITick) => marker
-        .setTickStyle(emptyLine)
-    )
+    chart.getDefaultAxisY().setThickness({
+        min: 60
+    })
 }
 
 // #region *** OHLC Chart ***
