@@ -2,7 +2,6 @@
 import 'whatwg-fetch'
 import { lightningChart, emptyFill, Themes, ChartXY, LineSeries, AreaRangeSeries, OHLCSeriesTraditional, OHLCFigures, XOHLC, Point, AxisTickStrategies, emptyLine, AreaSeriesTypes, ColorRGBA, SolidFill, SolidLine, UIElementBuilders, CustomTick, UITextBox, UIOrigins, AreaSeriesPositive, UIDraggingModes, translatePoint, UIBackgrounds, FormattingFunctions, UITick, UIElement, AutoCursorModes, UILayoutBuilders, UIElementColumn } from "@arction/lcjs"
 import { simpleMovingAverage, exponentialMovingAverage, bollingerBands, relativeStrengthIndex } from '@arction/lcjs-analysis'
-import { DataSource } from './dataSources'
 import { DataCache, DataRange, DataSourceInfo, OHLCDataFormat } from './dataCache'
 
 // Use theme if provided
@@ -13,21 +12,13 @@ if (urlParams.get('theme') == 'light')
 
 
 
-// #region ----- General application configuration -----
-
-// *** Data-source ***
-// To run application locally, you'll need to set 'dataSource' with source: DataSource.AlphaVantage, and a valid API token.
-// You can get one for free from https://www.alphavantage.co/
-let dataSource: DataSourceInfo
-dataSource = { source: DataSource.AlphaVantageArctionInternal }
-// dataSource = { source: DataSource.AlphaVantage, apiToken: 'API-KEY-HERE' }
-
 
 // To disable/enable/modify charts inside application, alter values below:
 
 const chartConfigOHLC = {
     show: true,
     verticalSpans: 3,
+
     /**
      * Simple Moving Average.
      */
@@ -36,14 +27,25 @@ const chartConfigOHLC = {
         averagingFrameLengthDays: 13, // history data : 13 days.
         averagingFrameLengthIntradayDays: 1 // intraday data : 1 day
     },
+
+    /**
+     * Simple Moving Average.
+     */
+    buytax: {
+        show: true,
+        averagingFrameLengthDays: 13, // history data : 13 days.
+        averagingFrameLengthIntradayDays: 1 // intraday data : 1 day
+    },
+
     /**
      * Exponential Moving Average.
      *
      * Uses same averagingFrameLength as above SMA.
      */
     ema: {
-        show: true
+        show: false
     },
+
     /**
      * Bollinger Bands.
      */
@@ -88,9 +90,6 @@ Object.keys(domElementIDs).forEach((key) => {
 })
 
 let dataRange = DataRange.Year
-domElements.get(domElementIDs.dataSearchRange1).addEventListener('change', () => dataRange = DataRange.Month)
-domElements.get(domElementIDs.dataSearchRange2).addEventListener('change', () => dataRange = DataRange.Year)
-domElements.get(domElementIDs.dataSearchRange3).addEventListener('change', () => dataRange = DataRange.TenYears)
 
 //#endregion
 
@@ -733,12 +732,7 @@ const renderOHLCData = (name: string, data: OHLCDataFormat): void => {
 
     // Set title of OHLC Chart to show name data.
     if (chartOHLCTitle) {
-        const dataRangeLabel = dataRange === DataRange.Month ?
-            '1 month' : (dataRange === DataRange.Year ?
-                '1 year' :
-                '10 years'
-            )
-        chartOHLCTitle.setText(`${name} (${dataRangeLabel})`)
+        chartOHLCTitle.setText(`${name}`)
     }
     // Also set name of OHLC Series.
     if (seriesOHLC) {
@@ -760,83 +754,15 @@ const maxAveragingFrameLength = Math.max(
 
 // Function that handles event where data search failed.
 const dataSearchFailed = (searchSymbol: string) => {
-    console.log('No data found for \'', searchSymbol, '\'')
-    alert(`Data for '${searchSymbol}' not found. May be that:
-1) Search symbol is not valid stock label.
-2) Requested stock data is not available from data provider.
-3) Data subscription limit has been reached for this day.
-` )
 }
 
 const dataCaches: Map<string, DataCache> = new Map()
 
 // Define function that searches OHLC data.
 const searchData = () => {
-    // Get search symbol from input field.
-    const inputField = domElements.get(domElementIDs.dataSearchInput) as HTMLInputElement
-    const searchSymbol = inputField.value
-
-    // Form API parameters.
-    /**
-     * Symbol to search.
-     */
-    const symbol: string = searchSymbol
-    // mode
-    let mode: 'history' | 'intraday'
-
-    switch (dataRange) {
-        case DataRange.Month:
-            mode = 'intraday'
-            break
-        case DataRange.Year:
-        case DataRange.TenYears:
-        default:
-            mode = 'history'
-    }
-
-    let cached = dataCaches.get(symbol)
-
-    if (!cached) {
-        const cache = new DataCache(symbol, dataSource)
-        dataCaches.set(symbol, cache)
-        cached = cache
-    }
-    let dataPromise
-    if (mode === 'history') {
-        dataPromise = cached.getDailyData(dataRange)
-    } else {
-        dataPromise = cached.getIntraDayData()
-    }
-    dataPromise.then((data) => {
-        renderOHLCData(`${searchSymbol} ${mode}`, data)
-    })
-        .catch((reason) => {
-            dataSearchFailed(searchSymbol)
-        })
+    throw new Error('Unsupported.')
 }
 
-// Subscribe to events where data-search is activated.
-domElements.get(domElementIDs.dataSearchActivate)
-    .addEventListener('click', searchData)
-
-document
-    .addEventListener('keydown', (event) => {
-        const key = event.key
-        if (key === 'Enter')
-            searchData()
-    })
-
-    // Active data-search whenever data-search range is changed, and previous data was visible.
-    ;[
-        domElements.get(domElementIDs.dataSearchRange1),
-        domElements.get(domElementIDs.dataSearchRange2),
-        domElements.get(domElementIDs.dataSearchRange3)
-    ].forEach((element) => element.addEventListener('change', () => {
-        // Update data only if it was already rendered.
-        if (dataExists) {
-            searchData()
-        }
-    }))
 
 // #endregion
 
@@ -844,5 +770,5 @@ document
 
 // Render static data initially (1 year history of AAPL, taken on 26th September 2019).
 // This is a temporary solution for while the API token is limited to an amount of searches.
-const temporaryStaticData = require('./temporary-static-data.json')
-renderOHLCData('AAPL history', temporaryStaticData)
+const temporaryStaticData = require('./my-static-data.json')
+renderOHLCData('Project-C Ticker', temporaryStaticData)
