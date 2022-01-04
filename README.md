@@ -13,6 +13,12 @@ Loads data from local "my-static-data.json" file to display chart.
 ![full](img/chart-screenshot-1.png)
 ![zoom](img/chart-screenshot-2.png)
 
+Each green candle is a buy from the LP. The hight represents the volume.
+Each red candle is a sell against the LP.
+The usual high/low thin line sticking out above or below the candle represents the buy/sell tax. It's an abuse.
+
+![zoom](img/chart-detail-1.png)
+
 
 ## Getting Started
 
